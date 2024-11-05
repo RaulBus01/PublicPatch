@@ -1,11 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
+<plist versio
+n="1.0">
 <dict>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+	<string>comgooglemaps</string>
+	<string>waze</string>
+	<string>maps</string>
+	</array>
+
+	
+	 <!-- Background location if needed -->
+	 <key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+    </array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Need location access to find your location</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Need location access to find your location</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Explanation on why the camera access is needed.</string>
+	<string>Need camera access to take pictures</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Need library access to pick images</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Explanation on why the microphone access is needed.</string>
+	<string>Need microphone access for voice messages</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

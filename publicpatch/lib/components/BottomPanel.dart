@@ -18,8 +18,7 @@ class BottomPanel extends StatelessWidget {
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children:
-                menuOptions, // Here the options passed from parent widget are displayed
+            children: menuOptions,
           ),
         );
       },

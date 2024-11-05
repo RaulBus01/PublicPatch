@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:publicpatch/pages/camera.dart';
+import 'package:publicpatch/pages/notifications.dart';
+import 'package:publicpatch/pages/reportForm.dart';
 import 'package:publicpatch/pages/reports.dart';
-import 'package:camera/camera.dart'; // Make sure you have this package
+import 'package:publicpatch/pages/reportsMap.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,44 +14,36 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  int _unreadNotifications = 3;
 
-  // Handles item tap in the BottomNavigationBar
-  void _onItemTapped(int index) async {
-    if (index == 2) {
-      // When camera icon is tapped, open the camera
-      try {
-        final cameras = await availableCameras();
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CameraPage(cameras: cameras),
-          ),
-        );
-      } catch (e) {
-        print('Error: $e');
-      }
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
+  void markAllNotificationsAsRead() {
+    setState(() {
+      _unreadNotifications = 0;
+    });
   }
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    ReportsPage(),
-    Text('Search', style: TextStyle(fontSize: 24, color: Colors.black)),
-    Text('Camera',
-        style: TextStyle(
-            fontSize: 24, color: Colors.black)), // Placeholder for the camera
-    Text('Notifications', style: TextStyle(fontSize: 24, color: Colors.black)),
-    Text('Profile', style: TextStyle(fontSize: 24, color: Colors.black)),
-  ];
+  void _onItemTapped(int index) async {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> widgetOptions = <Widget>[
+      ReportsPage(),
+      ReportsMapPage(),
+      ReportFormPage(),
+      NotificationsPage(
+        onMarkAllRead: markAllNotificationsAsRead,
+        unreadCount: _unreadNotifications,
+      ),
+      Text('Profile', style: TextStyle(fontSize: 24, color: Colors.black)),
+    ];
+
     return Scaffold(
       body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+        child: widgetOptions.elementAt(_selectedIndex),
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
@@ -67,9 +60,9 @@ class _HomePageState extends State<HomePage> {
           selectedItemColor: const Color(0xFF9DA4B3),
           type: BottomNavigationBarType.fixed,
           currentIndex: _selectedIndex,
-          onTap: _onItemTapped, // Link to the modified method
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
+          onTap: _onItemTapped,
+          items: <BottomNavigationBarItem>[
+            const BottomNavigationBarItem(
               backgroundColor: Color(0xff1A1C2A),
               activeIcon: Icon(
                 Ionicons.home,
@@ -83,7 +76,7 @@ class _HomePageState extends State<HomePage> {
               ),
               label: '',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(
                 Ionicons.search_outline,
                 size: 30,
@@ -91,7 +84,7 @@ class _HomePageState extends State<HomePage> {
               ),
               label: '',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(
                 Ionicons.add_circle_outline,
                 size: 40,
@@ -101,8 +94,11 @@ class _HomePageState extends State<HomePage> {
             ),
             BottomNavigationBarItem(
               icon: Badge(
-                label: Text('3'),
-                child: Icon(
+                label: _unreadNotifications > 0
+                    ? Text('$_unreadNotifications')
+                    : null,
+                isLabelVisible: _unreadNotifications > 0,
+                child: const Icon(
                   Ionicons.notifications_outline,
                   size: 30,
                   color: Color(0xFF9DA4B3),
@@ -110,7 +106,7 @@ class _HomePageState extends State<HomePage> {
               ),
               label: '',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(
                 Ionicons.person_outline,
                 size: 30,

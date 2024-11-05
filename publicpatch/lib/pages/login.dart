@@ -20,7 +20,7 @@ class LoginPage extends StatelessWidget {
           SingleChildScrollView(
               child: Column(
             children: [
-              Padding(padding: EdgeInsets.only(top: 200)),
+              Padding(padding: EdgeInsets.only(top: 100)),
               Text(
                 'Log In',
                 style: TextStyle(
@@ -29,9 +29,13 @@ class LoginPage extends StatelessWidget {
                     fontWeight: FontWeight.bold),
               ),
               Padding(padding: EdgeInsets.only(top: 40)),
-              CustomFormInput(title: 'Email'),
+              CustomFormInput(
+                  title: 'Email', preFixIcon: Ionicons.mail_outline),
               Padding(padding: EdgeInsets.only(top: 15)),
-              CustomFormInput(title: 'Password', obscureText: true),
+              CustomFormInput(
+                  title: 'Password',
+                  obscureText: true,
+                  preFixIcon: Ionicons.lock_closed_outline),
               Padding(padding: EdgeInsets.only(top: 40)),
               loginButton(context),
               Padding(padding: EdgeInsets.only(top: 40)),
@@ -41,7 +45,7 @@ class LoginPage extends StatelessWidget {
               ),
               Padding(padding: EdgeInsets.only(top: 50)),
               iconsRow(),
-              Padding(padding: EdgeInsets.only(top: 100)),
+              Padding(padding: EdgeInsets.only(top: 130)),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushReplacement(

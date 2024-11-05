@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BottomPanel.dart';
+import 'package:publicpatch/pages/reportsMap.dart';
+import 'package:publicpatch/components/GalleryView.dart';
+
+import '../components/ImageCarousel.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
@@ -9,11 +13,12 @@ class ReportsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         title: SelectableText('Your Reports'),
         backgroundColor: const Color(0XFF0D0E15),
         titleTextStyle: const TextStyle(fontSize: 18, color: Colors.white),
       ),
-      backgroundColor: const Color(0XFF1B1D29),
+      backgroundColor: const Color(0XFF0D0E15),
       body: Container(
         decoration: const BoxDecoration(
           color: Color.fromARGB(134, 54, 60, 73),
@@ -29,26 +34,38 @@ class ReportsPage extends StatelessWidget {
               location: 'Timisoara, Romania',
               description:
                   'Spent all day in this cozy place with my laptop. Undoubtedly the best place for work.',
-              imageUrl: 'assets/images/report.png',
+              imageUrls: [
+                'assets/images/report.png',
+                'assets/images/Login.jpg',
+                'assets/images/Login.jpg',
+              ],
               timeAgo: '30 min ago',
+              latitude: 21.7489,
+              longitude: 40.2087,
             ),
             ReportCard(
               location: 'Ferentari, Romania',
               description: 'Ai parcat ca un bou!',
-              imageUrl: 'assets/images/report.png',
+              imageUrls: ['assets/images/report.png'],
               timeAgo: '30 min ago',
+              latitude: 44.4167,
+              longitude: 26.1000,
             ),
             ReportCard(
               location: 'Ferentari, Romania',
               description: 'Ai parcat ca un bou!',
-              imageUrl: 'assets/images/report.png',
+              imageUrls: ['assets/images/report.png'],
               timeAgo: '30 min ago',
+              latitude: 44.4167,
+              longitude: 21.1000,
             ),
             ReportCard(
               location: 'Ferentari, Romania',
               description: 'Ai parcat ca un bou!',
-              imageUrl: 'assets/images/report.png',
+              imageUrls: ['assets/images/report.png'],
               timeAgo: '30 min ago',
+              latitude: 44.4167,
+              longitude: 26.1000,
             ),
           ],
         ),
@@ -60,16 +77,28 @@ class ReportsPage extends StatelessWidget {
 class ReportCard extends StatelessWidget {
   final String location;
   final String description;
-  final String imageUrl;
+  final List<String> imageUrls;
   final String timeAgo;
+  final double latitude;
+  final double longitude;
 
   const ReportCard({
     required this.location,
     required this.description,
-    required this.imageUrl,
+    required this.imageUrls,
     required this.timeAgo,
+    required this.latitude,
+    required this.longitude,
     super.key,
   });
+
+  void _showGallery(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => GalleryView(imageUrls: imageUrls),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +129,34 @@ class ReportCard extends StatelessWidget {
                       color: Colors.white54, size: 24),
                   menuOptions: [
                     ListTile(
+                      leading: const Icon(Icons.map, color: Colors.white54),
+                      title: const Text('Show on Map',
+                          style: TextStyle(color: Colors.white)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ReportsMapPage(
+                              latitude: latitude,
+                              longitude: longitude,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Divider(color: Colors.white54),
+                    ListTile(
+                      leading: const Icon(Icons.share, color: Colors.white54),
+                      title: const Text('Share Report',
+                          style: TextStyle(color: Colors.white)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        print('Share Report');
+                      },
+                    ),
+                    Divider(color: Colors.white54),
+                    ListTile(
                       leading: const Icon(Icons.edit, color: Colors.white54),
                       title: const Text('Edit Report',
                           style: TextStyle(color: Colors.white)),
@@ -128,14 +185,14 @@ class ReportCard extends StatelessWidget {
               style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
             const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: double.infinity,
-                child: Image.asset(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  height: 150,
+            GestureDetector(
+              onTap: () => _showGallery(context),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  height: MediaQuery.of(context).size.width * 0.5,
+                  child: ImageCarousel(imageUrls: imageUrls),
                 ),
               ),
             ),
