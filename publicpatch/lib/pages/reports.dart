@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BottomPanel.dart';
+import 'package:publicpatch/entity/Report.dart';
+import 'package:publicpatch/mocks/MockReports.dart';
 import 'package:publicpatch/pages/reportsMap.dart';
 import 'package:publicpatch/components/GalleryView.dart';
+import 'package:publicpatch/utils/maps_utils.dart';
 
 import '../components/ImageCarousel.dart';
 
@@ -11,6 +14,7 @@ class ReportsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    late List<Report> reports = getMockReports();
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
@@ -30,43 +34,16 @@ class ReportsPage extends StatelessWidget {
         padding: const EdgeInsets.all(10.0),
         child: ListView(
           children: [
-            ReportCard(
-              location: 'Timisoara, Romania',
-              description:
-                  'Spent all day in this cozy place with my laptop. Undoubtedly the best place for work.',
-              imageUrls: [
-                'assets/images/report.png',
-                'assets/images/Login.jpg',
-                'assets/images/Login.jpg',
-              ],
-              timeAgo: '30 min ago',
-              latitude: 21.7489,
-              longitude: 40.2087,
-            ),
-            ReportCard(
-              location: 'Ferentari, Romania',
-              description: 'Ai parcat ca un bou!',
-              imageUrls: ['assets/images/report.png'],
-              timeAgo: '30 min ago',
-              latitude: 44.4167,
-              longitude: 26.1000,
-            ),
-            ReportCard(
-              location: 'Ferentari, Romania',
-              description: 'Ai parcat ca un bou!',
-              imageUrls: ['assets/images/report.png'],
-              timeAgo: '30 min ago',
-              latitude: 44.4167,
-              longitude: 21.1000,
-            ),
-            ReportCard(
-              location: 'Ferentari, Romania',
-              description: 'Ai parcat ca un bou!',
-              imageUrls: ['assets/images/report.png'],
-              timeAgo: '30 min ago',
-              latitude: 44.4167,
-              longitude: 26.1000,
-            ),
+            for (var report in reports)
+              ReportCard(
+                title: report.title,
+                location: '${report.longitude}, ${report.latitude}',
+                description: report.description,
+                imageUrls: report.imageUrls,
+                timeAgo: report.createdAt.toString(),
+                latitude: report.latitude,
+                longitude: report.longitude,
+              ),
           ],
         ),
       ),
@@ -75,6 +52,7 @@ class ReportsPage extends StatelessWidget {
 }
 
 class ReportCard extends StatelessWidget {
+  final String title;
   final String location;
   final String description;
   final List<String> imageUrls;
@@ -83,6 +61,7 @@ class ReportCard extends StatelessWidget {
   final double longitude;
 
   const ReportCard({
+    required this.title,
     required this.location,
     required this.description,
     required this.imageUrls,
@@ -151,8 +130,15 @@ class ReportCard extends StatelessWidget {
                       title: const Text('Share Report',
                           style: TextStyle(color: Colors.white)),
                       onTap: () {
+                        MapUtils.shareLocationLink(
+                          context,
+                          latitude,
+                          longitude,
+                          location,
+                          title,
+                          description,
+                        );
                         Navigator.pop(context);
-                        print('Share Report');
                       },
                     ),
                     Divider(color: Colors.white54),
@@ -180,9 +166,28 @@ class ReportCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            SelectableText(
-              description,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 5,
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             GestureDetector(

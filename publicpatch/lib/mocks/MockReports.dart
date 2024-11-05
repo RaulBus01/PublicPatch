@@ -87,7 +87,8 @@ List<Report> getMockReports() {
       latitude: 43.87,
       longitude: 21.19,
       title: "Accident",
-      description: "Minor accident, police on scene",
+      description:
+          "Minor accident, police on sceneMajor traffic due to construction worMajor traffic due to construction worMajor traffic due to construction worMajor traffic due to construction worMajor traffic due to construction worMajor traffic due to construction worMajor traffic due to construction worMajor traffic due to construction wor",
       imageUrls: [
         'assets/images/report.png',
         'assets/images/Login.jpg',
