@@ -109,6 +109,29 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                       ),
                       constraints: const BoxConstraints(),
                       onPressed: () {
+                        MapUtils.shareLocationLink(
+                            context,
+                            widget.report.latitude,
+                            widget.report.longitude,
+                            address ?? '',
+                            widget.report.title,
+                            widget.report.description);
+                      },
+                      icon: const Icon(
+                        Icons.share_location_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    IconButton(
+                      padding: EdgeInsets.all(8),
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all(
+                          const Color.fromARGB(79, 148, 151, 172),
+                        ),
+                      ),
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
                         Navigator.pop(context);
                       },
                       icon: const Icon(
@@ -200,13 +223,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                                             await MapUtils.openInMapApp(
                                                 widget.report.latitude,
                                                 widget.report.longitude);
-                                        if (!success) {
-                                          // Fallback to sharing coordinates
-                                          final coords =
-                                              'Latitude: ${widget.report.latitude}, Longitude: ${widget.report.longitude}';
-                                          await Share.share(coords);
-                                        }
-                                        Navigator.pop(context);
+                                        print(
+                                            'Open in map app success: $success');
                                       },
                                       icon: const Icon(
                                         Icons.directions_outlined,

@@ -22,11 +22,22 @@ class MapUtils {
   }
 
   static Future<void> shareLocationLink(
-      BuildContext context, double latitude, double longitude) async {
+      BuildContext context,
+      double latitude,
+      double longitude,
+      String address,
+      String title,
+      String description) async {
     final String googleMapsUrl = Platform.isIOS
         ? 'https://maps.apple.com/?ll=$latitude,$longitude'
         : 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
-    await Share.share(googleMapsUrl);
+    await Share.share(
+        'Check out this report on Public Patch\n\n'
+        'Title: $title\n'
+        'Location: $address\n'
+        'Description: $description\n\n'
+        'View on map: https://www.google.com/maps/search/?api=1&query=$latitude,$longitude',
+        subject: 'Location shared from Public Patch');
     Navigator.pop(context);
   }
 
@@ -42,6 +53,8 @@ class MapUtils {
       }
     } else {
       // Android uses geo: scheme
+      print("Platform.isAndroid: ${Platform.isAndroid}");
+
       geoUri = Uri.parse('geo:$latitude,$longitude?q=$latitude,$longitude');
     }
 
@@ -58,89 +71,6 @@ class MapUtils {
       return false;
     }
   }
-
-  // static Future<void> shareLocationToApp(
-  //     BuildContext context, double latitude, double longitude) async {
-  //   // Check if coordinates are valid
-
-  //   showModalBottomSheet(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return SafeArea(
-  //         child: Wrap(
-  //           children: <Widget>[
-  //             ListTile(
-  //               leading: const Icon(Icons.map),
-  //               title: const Text('Open in Google Maps'),
-  //               onTap: () {
-  //                 Navigator.pop(context);
-  //               },
-  //             ),
-  //             // ListTile(
-  //             //   leading: const Icon(Icons.share_location),
-  //             //   title: const Text('Share Location Link'),
-  //             //   onTap: () async {
-  //             //     final String googleMapsUrl = Platform.isIOS
-  //             //         ? 'https://maps.apple.com/?ll=$latitude,$longitude'
-  //             //         : 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
-  //             //     await Share.share(googleMapsUrl);
-  //             //     Navigator.pop(context);
-  //             //   },
-  //             // ),
-  //             ListTile(
-  //               leading: const Icon(Icons.format_list_numbered),
-  //               title: const Text('Share Coordinates'),
-  //               onTap: () async {
-  //                 final String coords =
-  //                     'Latitude: $latitude, Longitude: $longitude';
-  //                 await Share.share(coords);
-  //                 Navigator.pop(context);
-  //               },
-  //             ),
-  //             ListTile(
-  //               leading: const Icon(Icons.apps),
-  //               title: const Text('Open with other apps'),
-  //               onTap: () async {
-  //                 Uri geoUri;
-  //                 if (Platform.isIOS) {
-  //                   // iOS uses comgooglemaps:// scheme for Google Maps
-  //                   geoUri = Uri.parse(
-  //                       'comgooglemaps://?center=$latitude,$longitude');
-  //                   if (!await canLaunchUrl(geoUri)) {
-  //                     // Fallback to Apple Maps
-  //                     geoUri = Uri.parse('maps://?ll=$latitude,$longitude');
-  //                   }
-  //                 } else {
-  //                   // Android uses geo: scheme
-  //                   geoUri = Uri.parse(
-  //                       'geo:$latitude,$longitude?q=$latitude,$longitude');
-  //                 }
-
-  //                 try {
-  //                   if (await canLaunchUrl(geoUri)) {
-  //                     await launchUrl(geoUri);
-  //                   } else {
-  //                     // Fallback to a regular share if no map apps are available
-  //                     final String coords =
-  //                         'Latitude: $latitude, Longitude: $longitude';
-  //                     await Share.share(coords);
-  //                   }
-  //                 } catch (e) {
-  //                   // Handle any errors that might occur during launching
-  //                   debugPrint('Error launching map: $e');
-  //                   final String coords =
-  //                       'Latitude: $latitude, Longitude: $longitude';
-  //                   await Share.share(coords);
-  //                 }
-  //                 Navigator.pop(context);
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 
   static void handleGeoUri(Uri uri, BuildContext context) {
     try {
