@@ -22,6 +22,7 @@ class _CustomTextAreaState extends State<CustomTextArea> {
       child: TextField(
         minLines: 1,
         maxLines: 6,
+        selectionControls: MaterialTextSelectionControls(),
         decoration: InputDecoration(
           prefixIcon: widget.preFixIcon != null
               ? Icon(

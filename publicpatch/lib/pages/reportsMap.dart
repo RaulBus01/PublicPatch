@@ -140,7 +140,6 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
               enableRotationByGesture: true,
             ),
           ),
-          // Rest of your existing Stack children...
           if (_isSearching)
             Positioned(
               top: 16,
@@ -156,23 +155,35 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
                     });
                   },
                   style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Search',
-                    hintStyle: TextStyle(color: Colors.white),
-                    prefixIcon: Icon(
+                    hintStyle: const TextStyle(color: Colors.white),
+                    prefixIcon: const Icon(
                       Ionicons.search_outline,
                       color: Colors.white,
                     ),
-                    border: OutlineInputBorder(
+                    border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10)),
                       borderSide: BorderSide.none,
                     ),
-                    focusedBorder: OutlineInputBorder(
+                    focusedBorder: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10)),
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    fillColor: Color(0xFF1A1C2A),
+                    fillColor: const Color(0xFF1A1C2A),
+                    suffixIcon: IconButton(
+                      icon: const Icon(
+                        Ionicons.close_outline,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isSearching = false;
+                        });
+                      },
+                    ),
                   ),
                   autofocus: true,
                 ),

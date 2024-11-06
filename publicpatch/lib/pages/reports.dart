@@ -138,7 +138,6 @@ class ReportCard extends StatelessWidget {
                           title,
                           description,
                         );
-                        Navigator.pop(context);
                       },
                     ),
                     Divider(color: Colors.white54),

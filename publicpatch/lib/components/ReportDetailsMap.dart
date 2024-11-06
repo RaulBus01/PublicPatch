@@ -4,7 +4,6 @@ import 'package:publicpatch/entity/Report.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
-import 'package:share_plus/share_plus.dart';
 
 class ReportDetailsMap extends StatefulWidget {
   final Report report;
