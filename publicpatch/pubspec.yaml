@@ -37,6 +37,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
   ionicons: ^0.2.2
+  google_sign_in: ^5.4.2
+  openid_client: ^0.4.8
+  flutter_appauth: ^6.0.6
 
 dev_dependencies:
   flutter_test:
