@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BackgroundImage.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
@@ -20,7 +21,7 @@ class LoginPage extends StatelessWidget {
           SingleChildScrollView(
               child: Column(
             children: [
-              Padding(padding: EdgeInsets.only(top: 100)),
+              Padding(padding: EdgeInsets.only(top: 200)),
               Text(
                 'Log In',
                 style: TextStyle(
@@ -29,13 +30,9 @@ class LoginPage extends StatelessWidget {
                     fontWeight: FontWeight.bold),
               ),
               Padding(padding: EdgeInsets.only(top: 40)),
-              CustomFormInput(
-                  title: 'Email', preFixIcon: Ionicons.mail_outline),
+              CustomFormInput(title: 'Email'),
               Padding(padding: EdgeInsets.only(top: 15)),
-              CustomFormInput(
-                  title: 'Password',
-                  obscureText: true,
-                  preFixIcon: Ionicons.lock_closed_outline),
+              CustomFormInput(title: 'Password', obscureText: true),
               Padding(padding: EdgeInsets.only(top: 40)),
               loginButton(context),
               Padding(padding: EdgeInsets.only(top: 40)),
@@ -45,7 +42,7 @@ class LoginPage extends StatelessWidget {
               ),
               Padding(padding: EdgeInsets.only(top: 50)),
               iconsRow(),
-              Padding(padding: EdgeInsets.only(top: 130)),
+              Padding(padding: EdgeInsets.only(top: 100)),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushReplacement(
