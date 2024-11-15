@@ -1,16 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace PublicPatch.Models
 {
     public class GetUserModel
     {
-        public GetUserModel(int id, string username, string email, string phoneNumber, DateTime createdAt, DateTime updatedAt)
+        public GetUserModel(int id, string username, string email,string role, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             Username = username;
             Email = email;
-            PhoneNumber = phoneNumber;
+            Role = role;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
         }
@@ -18,8 +19,8 @@ namespace PublicPatch.Models
         public int Id { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
-        public string PhoneNumber { get; set; }
 
+        public string Role { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

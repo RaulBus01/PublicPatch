@@ -1,8 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace PublicPatch.Aggregates
 {
+    [Index(nameof(Email), IsUnique = true)]
+
     public class UserEntity
     {
         [Key]
@@ -15,6 +18,7 @@ namespace PublicPatch.Aggregates
 
         [Required]
         [EmailAddress]
+        
         [MaxLength(100)]
         public string Email { get; set; }
 
@@ -27,7 +31,7 @@ namespace PublicPatch.Aggregates
 
         [Phone]
         [MaxLength(15)]
-        public string PhoneNumber { get; set; }
+
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

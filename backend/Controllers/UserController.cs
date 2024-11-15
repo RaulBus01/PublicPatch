@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PublicPatch.Aggregates;
 using PublicPatch.Models;
+using PublicPatch.NewFolder;
 using PublicPatch.Services;
 
 namespace PublicPatch.Controllers
@@ -11,16 +12,23 @@ namespace PublicPatch.Controllers
     {
         private readonly ILogger<WeatherForecastController> _logger;
         private readonly IUserService userService;
+      
 
         public UserController(ILogger<WeatherForecastController> logger, IUserService userService)
         {
             _logger = logger;
             this.userService = userService;
+         
+
         }
 
         [HttpPost("CreateUser")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserModel createUser)
         {
+            if (await userService.UserExistsByEmail(createUser.Email))
+            {
+                return BadRequest("User with this email already exists.");
+            }
 
             var user = new UserEntity
             {
@@ -28,12 +36,16 @@ namespace PublicPatch.Controllers
                 Email = createUser.Email,
                 Password = createUser.Password,
                 Role = createUser.Role,
-                PhoneNumber = createUser.PhoneNumber
+       
             };
 
             await userService.AddUser(user);
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+           
+
+
+
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id } , user);
         }
 
         [HttpPost("UpdateUser")]
@@ -79,5 +91,35 @@ namespace PublicPatch.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the user.");
             }
         }
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginModel login)
+        {
+            try
+            {
+
+                var user = await userService.Login(login.Email, login.Password);
+                if (user == null)
+                {
+                    return NotFound("Invalid username or password.");
+                }
+
+
+             
+
+
+
+
+                return Ok(user);
+
+
+
+
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message, e);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error Loggin In");
+            }
+        }   
     }
 }

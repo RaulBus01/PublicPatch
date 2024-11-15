@@ -19,8 +19,8 @@ namespace PublicPatch.Profiles
             return new(
                 id: source.Id,
                 username: source.Username,
+                role: source.Role,
                 email: source.Email,
-                phoneNumber: source.PhoneNumber,
                 createdAt: source.CreatedAt,
                 updatedAt: source.UpdatedAt
                 );       
