@@ -45,29 +45,29 @@ namespace PublicPatch.Services
         }
 
         public ClaimsPrincipal ValidateToken(string token)
-    {
-        var jwtSettings = configuration.GetSection("Jwt");
-        var secretKey = jwtSettings["Secret"];
-        var issuer = jwtSettings["Issuer"];
-        var audience = jwtSettings["Audience"];
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-
-        var tokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidIssuer = issuer,
-            ValidateAudience = true,
-            ValidAudience = audience,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = key,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
+            var jwtSettings = configuration.GetSection("Jwt");
+            var secretKey = jwtSettings["Secret"];
+            var issuer = jwtSettings["Issuer"];
+            var audience = jwtSettings["Audience"];
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        return tokenHandler.ValidateToken(token, tokenValidationParameters, out _);
-    }
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+                ValidateAudience = true,
+                ValidAudience = audience,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            return tokenHandler.ValidateToken(token, tokenValidationParameters, out _);
+        }
     }
 
 }

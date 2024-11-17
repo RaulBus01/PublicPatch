@@ -4,7 +4,7 @@ namespace PublicPatch.Models
 {
     public class RegisterModel
     {
-        
+
         [Required]
         public string Username { get; set; }
         [Required]

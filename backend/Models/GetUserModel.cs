@@ -1,12 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity;
-
-namespace PublicPatch.Models
+﻿namespace PublicPatch.Models
 {
     public class GetUserModel
     {
-        public GetUserModel(int id, string username, string email,string role, DateTime createdAt, DateTime updatedAt)
+        public GetUserModel(int id, string username, string email, string role, DateTime createdAt, DateTime updatedAt)
         {
             Id = id;
             Username = username;
