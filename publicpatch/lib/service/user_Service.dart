@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:publicpatch/entity/User.dart';
 import 'package:publicpatch/entity/UserLogin.dart';
 
@@ -29,10 +27,10 @@ class UserService {
     };
   }
 
-  Future<bool> createUser(User user) async {
+  Future<String> createUser(User user) async {
     try {
       final response = await _dio.post(
-        '/users/createUser',
+        '/users/register',
         data: {
           'username': user.username,
           'email': user.email,
@@ -46,13 +44,13 @@ class UserService {
           },
         ),
       );
-      return response.statusCode == 200 || response.statusCode == 201;
+
+      return response.statusCode == 200 || response.statusCode == 201
+          ? response.toString()
+          : '';
     } on DioException catch (e) {
-      SnackBar(content: Text(e.message.toString()));
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      SnackBar(content: Text(e.toString()));
-
       throw Exception('Network error: $e');
     }
   }
@@ -76,18 +74,8 @@ class UserService {
           ? response.toString()
           : '';
     } on DioException catch (e) {
-      Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: 'Error logging inA',
-          gravity: ToastGravity.TOP);
-
       throw Exception('Network error: ${e.message}');
     } catch (e) {
-      Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: e.toString(),
-          gravity: ToastGravity.TOP);
-
       throw Exception('Network error: $e');
     }
   }

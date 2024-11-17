@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/onboard.dart';
 import 'package:publicpatch/pages/settings.dart';
+import 'package:publicpatch/service/user_secure.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,11 +16,13 @@ void main() async {
       await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
   SecurityContext.defaultContext
       .setTrustedCertificatesBytes(data.buffer.asUint8List());
-  runApp(const MyApp());
+  final token = await UserSecureStorage.getToken();
+  runApp(MyApp(isLoggedIn: token != null));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  const MyApp({super.key, required this.isLoggedIn});
 
   // This widget is the root of your application.
   @override
@@ -47,7 +50,6 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: const OnboardingPage());
-    // home: const HomePage());
+        home: isLoggedIn ? const HomePage() : const OnboardingPage());
   }
 }

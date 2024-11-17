@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:publicpatch/components/BackgroundImage.dart';
-import 'package:publicpatch/components/CustomFormInput.dart';
 import 'package:publicpatch/pages/login.dart';
-import 'package:publicpatch/pages/signup.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/create_route.dart';
 
@@ -12,61 +9,32 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return onSettings(context);
-  }
-
-  Container onSettings(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints.expand(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
+    return Scaffold(
+      appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
+        title: SelectableText('Settings'),
+        backgroundColor: const Color(0XFF0D0E15),
+        titleTextStyle: const TextStyle(fontSize: 18, color: Colors.white),
       ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ColoredBox(color: Color.fromARGB(13, 14, 21, 100)),
-          Scaffold(
-              backgroundColor: const Color.fromARGB(0, 255, 3, 3),
-              body: Stack(fit: StackFit.expand, children: [
-                SingleChildScrollView(
-                    child: Column(
-                  children: [
-                    Padding(padding: EdgeInsets.only(top: 55)),
-                    ElevatedButton(
-                        onPressed: () async {
-                          await UserSecureStorage.deleteToken();
-                          Navigator.pushReplacement(context,
-                              CreateRoute.createRoute(const LoginPage()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          elevation: 0,
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                        ),
-                        child: Text(
-                          'Log Out',
-                          style: TextStyle(
-                              color: const Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 16,
-                              fontFamily: 'OpenSans-Bold',
-                              fontWeight: FontWeight.bold),
-                        )),
-                    Padding(padding: EdgeInsets.only(top: 40)),
-                    Text(
-                      'Settings',
-                      style: TextStyle(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 16,
-                          fontFamily: 'OpenSans-Bold',
-                          fontWeight: FontWeight.bold),
-                    ),
-                    Padding(padding: EdgeInsets.only(top: 40)),
-                    accountCategory('Account'),
-                    settingsCategory('Settings'),
-                  ],
-                ))
-              ]))
-        ],
+      backgroundColor: const Color(0XFF0D0E15),
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(134, 54, 60, 73),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        padding: const EdgeInsets.all(10.0),
+        child: ListView(
+          children: [
+            Padding(padding: EdgeInsets.only(top: 20)),
+            LogOutButton(),
+            Padding(padding: EdgeInsets.only(top: 20)),
+            accountCategory('Account'),
+            settingsCategory('Settings'),
+          ],
+        ),
       ),
     );
   }
@@ -204,4 +172,42 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-class _createRoute {}
+class LogOutButton extends StatelessWidget {
+  const LogOutButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 260,
+      height: 40,
+      child: ElevatedButton(
+          onPressed: () {
+            UserSecureStorage.deleteToken();
+            Navigator.pushReplacement(
+                context, CreateRoute.createRoute(const LoginPage()));
+          },
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Color(0xFFFF9509), Color(0xFFFE2042)]),
+                borderRadius: BorderRadius.circular(5)),
+            child: Center(
+              child: Text(
+                'Log Out',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+          )),
+    );
+  }
+}

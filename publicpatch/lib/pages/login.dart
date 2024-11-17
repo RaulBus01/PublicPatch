@@ -36,18 +36,26 @@ class _LoginPageState extends State<LoginPage> {
           password: _passwordController.text,
         );
 
-        
+        var validate = ValidateUserLogin(user);
 
+        if (validate != 'valid') {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg: validate,
+              gravity: ToastGravity.TOP);
+          setState(() => _isLoading = false);
+          return;
+        }
         final result = await _userService.login(user);
 
-      
-        
         if (result.isNotEmpty) {
           await UserSecureStorage.saveToken(result);
+          Fluttertoast.showToast(
+              backgroundColor: Colors.green,
+              msg: 'Logged in successfully',
+              gravity: ToastGravity.TOP);
           Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
+              context, CreateRoute.createRoute(const HomePage()));
         } else {
           Fluttertoast.showToast(
               backgroundColor: Colors.red,
@@ -183,4 +191,20 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   )));
   }
+}
+
+String ValidateUserLogin(UserLogin user) {
+  if (user.email.isEmpty) {
+    return 'Email is required';
+  }
+
+  if (user.password.isEmpty) {
+    return 'Password is required';
+  }
+
+  if (user.email.contains('@') == false) {
+    return 'Email is invalid';
+  }
+
+  return 'valid';
 }
