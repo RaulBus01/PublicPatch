@@ -8,6 +8,14 @@ namespace PublicPatch.Aggregates
 
     public class UserEntity
     {
+        public UserEntity() { }
+        public UserEntity(string username, string email, string role, string password) {
+            this.Username = username;
+            this.Email = email;
+            this.Role = role;
+            this.Password = password;
+        }
+
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
@@ -23,7 +31,6 @@ namespace PublicPatch.Aggregates
         public string Email { get; set; }
 
         [Required]
-        [MaxLength(100)]
         public string Password { get; set; }
 
         [MaxLength(20)]

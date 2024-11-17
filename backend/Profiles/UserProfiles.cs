@@ -9,6 +9,7 @@ namespace PublicPatch.Profiles
         public GetUserProfile()
         {
             CreateMap<UserEntity, GetUserModel>().ConvertUsing<GetUserModelConverter>();
+            CreateMap<IEnumerable<UserEntity>, IEnumerable<GetUserModel>>().ConvertUsing<GetUserModelEnumerableConverter>();
         }
     }
 
@@ -24,6 +25,20 @@ namespace PublicPatch.Profiles
                 createdAt: source.CreatedAt,
                 updatedAt: source.UpdatedAt
                 );       
+        }
+    }
+    internal class GetUserModelEnumerableConverter : ITypeConverter<IEnumerable<UserEntity>, IEnumerable<GetUserModel>>
+    {
+        public IEnumerable<GetUserModel> Convert(IEnumerable<UserEntity> source, IEnumerable<GetUserModel> destination, ResolutionContext context)
+        {
+            return source.Select(user => new GetUserModel(
+                id: user.Id,
+                username: user.Username,
+                role: user.Role,
+                email: user.Email,
+                createdAt: user.CreatedAt,
+                updatedAt: user.UpdatedAt
+            ));
         }
     }
 }
