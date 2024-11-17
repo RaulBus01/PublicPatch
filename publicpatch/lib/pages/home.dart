@@ -4,6 +4,7 @@ import 'package:publicpatch/pages/notifications.dart';
 import 'package:publicpatch/pages/reportForm.dart';
 import 'package:publicpatch/pages/reports.dart';
 import 'package:publicpatch/pages/reportsMap.dart';
+import 'package:publicpatch/pages/settings.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -38,7 +39,7 @@ class _HomePageState extends State<HomePage> {
         onMarkAllRead: markAllNotificationsAsRead,
         unreadCount: _unreadNotifications,
       ),
-      Text('Profile', style: TextStyle(fontSize: 24, color: Colors.black)),
+      SettingsPage(),
     ];
 
     return Scaffold(

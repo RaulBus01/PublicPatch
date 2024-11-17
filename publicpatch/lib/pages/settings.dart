@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BackgroundImage.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
+import 'package:publicpatch/pages/login.dart';
 import 'package:publicpatch/pages/signup.dart';
+import 'package:publicpatch/service/user_secure.dart';
+import 'package:publicpatch/utils/create_route.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -29,6 +32,26 @@ class SettingsPage extends StatelessWidget {
                     child: Column(
                   children: [
                     Padding(padding: EdgeInsets.only(top: 55)),
+                    ElevatedButton(
+                        onPressed: () async {
+                          await UserSecureStorage.deleteToken();
+                          Navigator.pushReplacement(context,
+                              CreateRoute.createRoute(const LoginPage()));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          elevation: 0,
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                        ),
+                        child: Text(
+                          'Log Out',
+                          style: TextStyle(
+                              color: const Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 16,
+                              fontFamily: 'OpenSans-Bold',
+                              fontWeight: FontWeight.bold),
+                        )),
+                    Padding(padding: EdgeInsets.only(top: 40)),
                     Text(
                       'Settings',
                       style: TextStyle(
@@ -128,28 +151,30 @@ class SettingsPage extends StatelessWidget {
 
   SizedBox toggleSettingOption(String title) {
     return SizedBox(
-          height: 48,
-          child: Row(
-            children: [
-              Padding(padding: EdgeInsets.only(left: 15)),
-              Expanded(
-                  child: Text(
-                title,
-                style: TextStyle(
-                    color: const Color.fromARGB(255, 255, 255, 255),
-                    fontSize: 16,
-                    fontFamily: 'Open Sans',
-                    fontWeight: FontWeight.bold),
-              )),
-              ToggleButtons(
-                isSelected: [true],
-                onPressed: (int index) {},
-                children: [
-                  Icon(Ionicons.checkmark, color: const Color.fromARGB(255, 5, 255, 26))                ],
-              ),
-              Padding(padding: EdgeInsets.only(right: 20)),
-            ],
-          ));
+        height: 48,
+        child: Row(
+          children: [
+            Padding(padding: EdgeInsets.only(left: 15)),
+            Expanded(
+                child: Text(
+              title,
+              style: TextStyle(
+                  color: const Color.fromARGB(255, 255, 255, 255),
+                  fontSize: 16,
+                  fontFamily: 'Open Sans',
+                  fontWeight: FontWeight.bold),
+            )),
+            ToggleButtons(
+              isSelected: [true],
+              onPressed: (int index) {},
+              children: [
+                Icon(Ionicons.checkmark,
+                    color: const Color.fromARGB(255, 5, 255, 26))
+              ],
+            ),
+            Padding(padding: EdgeInsets.only(right: 20)),
+          ],
+        ));
   }
 
   SizedBox langSettingOption(String title, String language) {
@@ -178,3 +203,5 @@ class SettingsPage extends StatelessWidget {
         ));
   }
 }
+
+class _createRoute {}

@@ -46,7 +46,7 @@ class UserService {
           },
         ),
       );
-      return response.statusCode == 200 || response.statusCode == 201; 
+      return response.statusCode == 200 || response.statusCode == 201;
     } on DioException catch (e) {
       SnackBar(content: Text(e.message.toString()));
       throw Exception('Network error: ${e.message}');
@@ -57,7 +57,7 @@ class UserService {
     }
   }
 
-  Future<bool> login(UserLogin user) async {
+  Future<String> login(UserLogin user) async {
     try {
       final response = await _dio.post(
         '/users/login',
@@ -72,11 +72,13 @@ class UserService {
           },
         ),
       );
-      return response.statusCode == 200 || response.statusCode == 201;
+      return response.statusCode == 200 || response.statusCode == 201
+          ? response.toString()
+          : '';
     } on DioException catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
-          msg: e.message.toString(),
+          msg: 'Error logging inA',
           gravity: ToastGravity.TOP);
 
       throw Exception('Network error: ${e.message}');
