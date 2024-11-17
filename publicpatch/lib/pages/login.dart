@@ -1,13 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 // import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BackgroundImage.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
+import 'package:publicpatch/entity/UserLogin.dart';
+import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/reports.dart';
 import 'package:publicpatch/pages/signup.dart';
+import 'package:publicpatch/service/user_Service.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _userService = UserService();
+  bool _isLoading = false;
+
+  Future<void> _handleLogin() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+
+      try {
+        final user = UserLogin(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+
+        final result = await _userService.login(user);
+        if (result) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg: 'User not found',
+              gravity: ToastGravity.TOP);
+        }
+      } catch (e) {
+        Fluttertoast.showToast(
+            backgroundColor: Colors.red,
+            msg: 'Error logging in',
+            gravity: ToastGravity.TOP);
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,46 +74,52 @@ class LoginPage extends StatelessWidget {
             body: Stack(fit: StackFit.expand, children: [
           Backgroundimage(imagePath: 'assets/images/Login.jpg', opacity: 0.8),
           SingleChildScrollView(
-              child: Column(
-            children: [
-              Padding(padding: EdgeInsets.only(top: 200)),
-              Text(
-                'Log In',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 34,
-                    fontWeight: FontWeight.bold),
-              ),
-              Padding(padding: EdgeInsets.only(top: 40)),
-              CustomFormInput(title: 'Email'),
-              Padding(padding: EdgeInsets.only(top: 15)),
-              CustomFormInput(title: 'Password', obscureText: true),
-              Padding(padding: EdgeInsets.only(top: 40)),
-              loginButton(context),
-              Padding(padding: EdgeInsets.only(top: 40)),
-              Text(
-                'or log in with',
-                style: TextStyle(color: Color(0xFF768196), fontSize: 16),
-              ),
-              Padding(padding: EdgeInsets.only(top: 50)),
-              iconsRow(),
-              Padding(padding: EdgeInsets.only(top: 100)),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                      context, _createRoute(SignUpPage()));
-                },
-                style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
+              child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Padding(padding: EdgeInsets.only(top: 150)),
+                Text(
+                  'Log In',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold),
                 ),
-                child: Text(
-                  'Don\'t have an account? Sign Up',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                Padding(padding: EdgeInsets.only(top: 40)),
+                CustomFormInput(controller: _emailController, title: 'Email'),
+                Padding(padding: EdgeInsets.only(top: 15)),
+                CustomFormInput(
+                    controller: _passwordController,
+                    title: 'Password',
+                    obscureText: true),
+                Padding(padding: EdgeInsets.only(top: 40)),
+                loginButton(context),
+                Padding(padding: EdgeInsets.only(top: 40)),
+                Text(
+                  'or log in with',
+                  style: TextStyle(color: Color(0xFF768196), fontSize: 16),
                 ),
-              ),
-            ],
+                Padding(padding: EdgeInsets.only(top: 50)),
+                iconsRow(),
+                Padding(padding: EdgeInsets.only(top: 100)),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                        context, _createRoute(SignUpPage()));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                  ),
+                  child: Text(
+                    'Don\'t have an account? Sign Up',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
           ))
         ])));
   }
@@ -90,29 +151,29 @@ class LoginPage extends StatelessWidget {
         width: 251,
         height: 50,
         child: ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacement(context, _createRoute(ReportsPage()));
-            },
+            onPressed: _isLoading ? null : _handleLogin,
             style: ElevatedButton.styleFrom(
               elevation: 0,
               shadowColor: Colors.transparent,
               backgroundColor: Colors.transparent,
             ),
-            child: Container(
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: [Color(0xFFFF9509), Color(0xFFFE2042)]),
-                  borderRadius: BorderRadius.circular(5)),
-              child: Center(
-                child: Text(
-                  'Log In',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
-            )));
+            child: _isLoading
+                ? CircularProgressIndicator()
+                : Container(
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            colors: [Color(0xFFFF9509), Color(0xFFFE2042)]),
+                        borderRadius: BorderRadius.circular(5)),
+                    child: Center(
+                      child: Text(
+                        'Log In',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  )));
   }
 
   Route _createRoute(Widget page) {

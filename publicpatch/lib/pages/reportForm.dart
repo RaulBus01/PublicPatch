@@ -5,7 +5,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:publicpatch/components/CustomDropDown.dart';
 
-import 'package:publicpatch/components/CustomFormInput.dart';
 import 'package:publicpatch/components/CustomTextArea.dart';
 
 class ReportFormPage extends StatefulWidget {
@@ -183,9 +182,9 @@ class _ReportFormState extends State<ReportFormPage> {
               ),
             ),
             Padding(padding: EdgeInsets.only(top: 40)),
-            CustomFormInput(title: 'Title', preFixIcon: Icons.title),
+            // CustomFormInput(title: 'Title', preFixIcon: Icons.title),
             Padding(padding: EdgeInsets.only(top: 20)),
-            CustomFormInput(title: 'Location', preFixIcon: Icons.location_on),
+            // CustomFormInput(title: 'Location', preFixIcon: Icons.location_on),
             Padding(padding: EdgeInsets.only(top: 20)),
             CustomDropDown<String>(
               initialValue: 'Select Category',

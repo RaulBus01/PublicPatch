@@ -4,10 +4,12 @@ class CustomFormInput extends StatefulWidget {
   final String title;
   final bool obscureText;
   final IconData? preFixIcon;
+  final TextEditingController controller;
 
   const CustomFormInput(
       {super.key,
       required this.title,
+      required this.controller,
       this.obscureText = false,
       this.preFixIcon});
 
@@ -29,6 +31,7 @@ class _CustomFormInputState extends State<CustomFormInput> {
       width: 251,
       height: 50,
       child: TextFormField(
+        controller: widget.controller,
         decoration: InputDecoration(
           prefixIcon: widget.preFixIcon != null
               ? Icon(
