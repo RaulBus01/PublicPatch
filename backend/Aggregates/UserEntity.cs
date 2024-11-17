@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace PublicPatch.Aggregates
@@ -9,7 +9,8 @@ namespace PublicPatch.Aggregates
     public class UserEntity
     {
         public UserEntity() { }
-        public UserEntity(string username, string email, string role, string password) {
+        public UserEntity(string username, string email, string role, string password)
+        {
             this.Username = username;
             this.Email = email;
             this.Role = role;
@@ -26,7 +27,7 @@ namespace PublicPatch.Aggregates
 
         [Required]
         [EmailAddress]
-        
+
         [MaxLength(100)]
         public string Email { get; set; }
 
