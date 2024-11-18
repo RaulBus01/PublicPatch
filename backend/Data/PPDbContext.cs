@@ -23,7 +23,7 @@ namespace PublicPatch.Data
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<ReportEntity> Reports { get; set; }
         public DbSet<LocationEntity> Locations { get; set; }
-
+        public DbSet<CategoryEntity> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

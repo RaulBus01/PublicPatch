@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Amazon.S3.Model.Internal.MarshallTransformations;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PublicPatch.Aggregates;
@@ -12,6 +13,8 @@ namespace PublicPatch.Services
         Task<GetReportModel> GetReportById(int id);
         Task<IEnumerable<GetReportModel>> GetReportsByUser(int userId);
         Task CreateReport(CreateReportModel createReportModel);
+        Task<IEnumerable<CategoryEntity>> GetCategories();
+        Task<int> CreateCategory(CreateCategoryModel categoryModel);
     }
     public class ReportService : IReportService
     {
@@ -81,7 +84,7 @@ namespace PublicPatch.Services
                 {
                     Title = createReportModel.Title,
                     Location = createReportModel.location,
-                    Category = createReportModel.Category,
+                    CategoryId = createReportModel.CategoryId,
                     Description = createReportModel.Description,
                     UserId = createReportModel.UserId,
                     Status = createReportModel.Status,
@@ -101,6 +104,30 @@ namespace PublicPatch.Services
                 logger.LogError($"{nameof(CreateReport)}: Error while creating the report", e);
                 throw;
             }
+        }
+
+        public async Task<IEnumerable<CategoryEntity>> GetCategories()
+        {
+            var scope = serviceScopeFactory.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+
+            return await dbContext.Categories.ToListAsync();
+        }
+
+        public async Task<int> CreateCategory(CreateCategoryModel categoryModel)
+        {
+            var scope = serviceScopeFactory.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+
+            var category = new CategoryEntity()
+            {
+                Name = categoryModel.Name,
+                Description = categoryModel.Description
+            };
+
+            dbContext.Categories.Add(category);
+            await dbContext.SaveChangesAsync();
+            return category.Id;
         }
     }
 }

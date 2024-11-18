@@ -21,7 +21,7 @@ namespace PublicPatch.Profiles
             {
                 Title = source.Title,
                 Location = source.Location,
-                Category = source.Category,
+                CategoryId = source.CategoryId,
                 Description = source.Description,
                 UserId = source.UserId,
                 Status = source.Status,
@@ -42,7 +42,7 @@ namespace PublicPatch.Profiles
             {
                 Title = report.Title,
                 Location = report.Location,
-                Category = report.Category,
+                CategoryId = report.CategoryId,
                 Description = report.Description,
                 UserId = report.UserId,
                 Status = report.Status,
