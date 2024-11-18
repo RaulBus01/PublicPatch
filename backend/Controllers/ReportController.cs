@@ -54,5 +54,16 @@ namespace PublicPatch.Controllers
             return Ok(reports);
         }
 
+        [HttpPut("UpdateReport{reportId}")]
+        public async Task<IActionResult> UpdateReport(int userId)
+        {
+            var reports = await reportService.GetReportsByUser(userId);
+            if (reports.Count() == 0)
+            {
+                return NotFound();
+            }
+
+            return Ok(reports);
+        }
     }
 }

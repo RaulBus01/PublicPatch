@@ -8,7 +8,7 @@ namespace PublicPatch.Models
     {
         public string Title { get; set; }
         public LocationEntity location { get; set; }
-        public Category Category { get; set; }
+        public int CategoryId { get; set; }
         public string Description { get; set; }
         public int UserId { get; set; }
         public Status Status { get; set; }
@@ -17,6 +17,6 @@ namespace PublicPatch.Models
         public DateTime? ResolvedAt { get; set; }
         public int Upvotes { get; set; }
         public int Downvotes { get; set; }
-        public ICollection<string> ReportImagesUrls { get; set; } = new List<string>();
+        public IList<string> ReportImagesUrls { get; set; } = new List<string>();
     }
 }
