@@ -9,6 +9,8 @@ import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/reports.dart';
 import 'package:publicpatch/pages/signup.dart';
 import 'package:publicpatch/service/user_Service.dart';
+import 'package:publicpatch/service/user_secure.dart';
+import 'package:publicpatch/utils/create_route.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -34,12 +36,26 @@ class _LoginPageState extends State<LoginPage> {
           password: _passwordController.text,
         );
 
+        var validate = ValidateUserLogin(user);
+
+        if (validate != 'valid') {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg: validate,
+              gravity: ToastGravity.TOP);
+          setState(() => _isLoading = false);
+          return;
+        }
         final result = await _userService.login(user);
-        if (result) {
+
+        if (result.isNotEmpty) {
+          await UserSecureStorage.saveToken(result);
+          Fluttertoast.showToast(
+              backgroundColor: Colors.green,
+              msg: 'Logged in successfully',
+              gravity: ToastGravity.TOP);
           Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
+              context, CreateRoute.createRoute(const HomePage()));
         } else {
           Fluttertoast.showToast(
               backgroundColor: Colors.red,
@@ -106,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pushReplacement(
-                        context, _createRoute(SignUpPage()));
+                        context, CreateRoute.createRoute(const SignUpPage()));
                   },
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
@@ -175,24 +191,20 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   )));
   }
+}
 
-  Route _createRoute(Widget page) {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(1.0, 0.0);
-        const end = Offset.zero;
-        const curve = Curves.ease;
-
-        var tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
-      },
-      transitionDuration: const Duration(milliseconds: 600),
-    );
+String ValidateUserLogin(UserLogin user) {
+  if (user.email.isEmpty) {
+    return 'Email is required';
   }
+
+  if (user.password.isEmpty) {
+    return 'Password is required';
+  }
+
+  if (user.email.contains('@') == false) {
+    return 'Email is invalid';
+  }
+
+  return 'valid';
 }

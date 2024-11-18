@@ -46,9 +46,12 @@ builder.Services.AddSwaggerGen(o =>
 
 builder.Services.AddScoped<IConfigService, ConfigService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped(typeof(PPContext));
+
 builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
 
-builder.Services.AddScoped(typeof(PPContext));
+
 
 builder.Services.AddScoped<GetUserModelConverter>();
 builder.Services.AddScoped<GetReportModelEnumerableConverter>();

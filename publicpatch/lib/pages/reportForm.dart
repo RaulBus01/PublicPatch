@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:publicpatch/components/CustomDropDown.dart';
+import 'package:publicpatch/components/CustomFormInput.dart';
 
 import 'package:publicpatch/components/CustomTextArea.dart';
 
@@ -18,6 +19,13 @@ class _ReportFormState extends State<ReportFormPage> {
   final ImagePicker _picker = ImagePicker();
   // final FilePicker _filePicker = await FilePicker.platform.pickFiles();
   final List<File> _images = [];
+
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _categoryController = TextEditingController();
+  final _imageController = TextEditingController();
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -161,53 +169,63 @@ class _ReportFormState extends State<ReportFormPage> {
         titleTextStyle: const TextStyle(fontSize: 18, color: Colors.white),
       ),
       backgroundColor: const Color(0XFF0D0E15),
-      body: Container(
-        decoration: const BoxDecoration(
-          color: Color.fromARGB(134, 54, 60, 73),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
+      body: Form(
+        key: _formKey,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Color.fromARGB(134, 54, 60, 73),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+            ),
           ),
-        ),
-        padding: const EdgeInsets.all(10.0),
-        child: ListView(
-          children: [
-            Padding(padding: EdgeInsets.only(top: 20)),
-            Text(
-              'Report Form',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 34,
-                fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.all(10.0),
+          child: ListView(
+            children: [
+              Padding(padding: EdgeInsets.only(top: 20)),
+              Text(
+                'Report Form',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            Padding(padding: EdgeInsets.only(top: 40)),
-            // CustomFormInput(title: 'Title', preFixIcon: Icons.title),
-            Padding(padding: EdgeInsets.only(top: 20)),
-            // CustomFormInput(title: 'Location', preFixIcon: Icons.location_on),
-            Padding(padding: EdgeInsets.only(top: 20)),
-            CustomDropDown<String>(
-              initialValue: 'Select Category',
-              items: ['Category 1', 'Category 2', 'Category 3'],
-            ),
-            Padding(padding: EdgeInsets.only(top: 20)),
-            _buildImageCard(),
-            Padding(padding: EdgeInsets.only(top: 15)),
-            CustomTextArea(title: 'Description', preFixIcon: Icons.description),
-            Padding(padding: EdgeInsets.only(top: 40)),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
+              Padding(padding: EdgeInsets.only(top: 40)),
+              CustomFormInput(
+                  controller: _titleController,
+                  title: 'Title',
+                  preFixIcon: Icons.title),
+              Padding(padding: EdgeInsets.only(top: 20)),
+              CustomFormInput(
+                  controller: _locationController,
+                  title: 'Location',
+                  preFixIcon: Icons.location_on),
+              Padding(padding: EdgeInsets.only(top: 20)),
+              CustomDropDown<String>(
+                initialValue: 'Select Category',
+                items: ['Category 1', 'Category 2', 'Category 3'],
               ),
-              child: Text(
-                'Submit',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+              Padding(padding: EdgeInsets.only(top: 20)),
+              _buildImageCard(),
+              Padding(padding: EdgeInsets.only(top: 15)),
+              CustomTextArea(
+                  title: 'Description', preFixIcon: Icons.description),
+              Padding(padding: EdgeInsets.only(top: 40)),
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  elevation: 0,
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                ),
+                child: Text(
+                  'Submit',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

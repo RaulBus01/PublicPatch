@@ -6,6 +6,7 @@ import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/login.dart';
 import 'package:publicpatch/service/user_Service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:publicpatch/service/user_secure.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -44,15 +45,16 @@ class _SignUpPageState extends State<SignUpPage> {
         }
 
         final result = await _userService.createUser(user);
-        if (result) {
+        if (result.isNotEmpty) {
+          await UserSecureStorage.saveToken(result);
           Fluttertoast.showToast(
               msg: 'Account created successfully', gravity: ToastGravity.TOP);
-
+        
           Navigator.pushReplacement(context, _createRoute('home'));
         } else {
           Fluttertoast.showToast(
               backgroundColor: Colors.red,
-              msg: 'Error creating account',
+              msg: result,
               gravity: ToastGravity.TOP);
         }
       } catch (e) {

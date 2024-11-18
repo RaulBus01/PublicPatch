@@ -11,4 +11,6 @@ class UserLogin {
   Map<String, dynamic> toJson() {
     return {'email': email, 'password': password};
   }
+
+  validate() {}
 }

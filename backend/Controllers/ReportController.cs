@@ -42,7 +42,7 @@ namespace PublicPatch.Controllers
             return Ok(report);
         }
 
-        [HttpGet("GetUserReports{id}")]
+        [HttpGet("GetUserReports{userId}")]
         public async Task<IActionResult> GetReportByUser(int userId)
         {
             var reports = await reportService.GetReportsByUser(userId);
