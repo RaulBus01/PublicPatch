@@ -10,7 +10,7 @@ namespace PublicPatch.Aggregates
         {
         }
 
-        public ReportEntity(string title, LocationEntity location, int categoryId, Category category, string description, int userId, int upvotes, int downvotes, ICollection<string> reportImages)
+        public ReportEntity(string title, LocationEntity location, Category category, string description, int userId, int upvotes, int downvotes, IList<string> reportImages)
         {
             Title = title;
             Location = location;
@@ -39,6 +39,6 @@ namespace PublicPatch.Aggregates
         public DateTime? ResolvedAt { get; set; }
         public int Upvotes { get; set; }
         public int Downvotes { get; set; }
-        public ICollection<string> ReportImages { get; set; } = new List<string>();
+        public IList<string> ReportImages { get; set; } = new List<string>();
     }
 }

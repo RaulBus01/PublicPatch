@@ -17,6 +17,6 @@ namespace PublicPatch.Models
         public DateTime? ResolvedAt { get; set; }
         public int Upvotes { get; set; }
         public int Downvotes { get; set; }
-        public ICollection<string> ReportImagesUrls { get; set; } = new List<string>();
+        public IList<string> ReportImagesUrls { get; set; } = new List<string>();
     }
 }
