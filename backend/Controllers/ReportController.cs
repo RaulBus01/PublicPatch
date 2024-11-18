@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using PublicPatch.Models;
+using PublicPatch.Services;
 
 namespace PublicPatch.Controllers
 {
@@ -7,9 +10,49 @@ namespace PublicPatch.Controllers
     public class ReportController : ControllerBase
     {
         private readonly ILogger<WeatherForecastController> _logger;
-        public ReportController(ILogger<WeatherForecastController> logger)
+        private readonly IMapper mapper;
+        private readonly IReportService reportService;
+
+        public ReportController(ILogger<WeatherForecastController> logger,
+            IMapper mapper,
+            IReportService reportService)
         {
             _logger = logger;
+            this.mapper = mapper;
+            this.reportService = reportService;
         }
+
+        [HttpPost("CreteReport")]
+        public async Task<IActionResult>CreateReport([FromBody] CreateReportModel report)
+        {
+            await reportService.CreateReport(report);
+
+            return Ok(report);
+        }
+
+        [HttpGet("GetReport{id}")]
+        public async Task<IActionResult> GetReport(int id)
+        {
+            var report = await reportService.GetReportById(id);
+            if (report == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(report);
+        }
+
+        [HttpGet("GetUserReports{id}")]
+        public async Task<IActionResult> GetReportByUser(int userId)
+        {
+            var reports = await reportService.GetReportsByUser(userId);
+            if (reports.Count() == 0)
+            {
+                return NotFound();
+            }
+
+            return Ok(reports);
+        }
+
     }
 }
