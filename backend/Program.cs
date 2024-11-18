@@ -51,7 +51,10 @@ builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
 builder.Services.AddScoped(typeof(PPContext));
 
 builder.Services.AddScoped<GetUserModelConverter>();
-builder.Services.AddAutoMapper(typeof(GetUserProfile));
+builder.Services.AddScoped<GetReportModelEnumerableConverter>();
+builder.Services.AddScoped<GetReportConverter>();
+builder.Services.AddAutoMapper(typeof(UserProfile));
+builder.Services.AddAutoMapper(typeof(ReportProfile));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
