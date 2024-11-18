@@ -4,9 +4,9 @@ using PublicPatch.Models;
 
 namespace PublicPatch.Profiles
 {
-    public class GetUserProfile : Profile
+    public class UserProfile : Profile
     {
-        public GetUserProfile()
+        public UserProfile()
         {
             CreateMap<UserEntity, GetUserModel>().ConvertUsing<GetUserModelConverter>();
             CreateMap<IEnumerable<UserEntity>, IEnumerable<GetUserModel>>().ConvertUsing<GetUserModelEnumerableConverter>();
