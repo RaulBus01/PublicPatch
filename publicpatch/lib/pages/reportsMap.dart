@@ -49,7 +49,9 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
     try {
       for (final report in mockReports) {
         final marker = await controller.addMarker(
-          GeoPoint(latitude: report.latitude, longitude: report.longitude),
+          GeoPoint(
+              latitude: report.location.latitude,
+              longitude: report.location.longitude),
           markerIcon: MarkerIcon(
             icon: Icon(
               Icons.location_on,
@@ -95,8 +97,8 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
             onGeoPointClicked: (geoPoint) {
               final report = mockReports.firstWhere(
                 (report) =>
-                    report.latitude == geoPoint.latitude &&
-                    report.longitude == geoPoint.longitude,
+                    report.location.latitude == geoPoint.latitude &&
+                    report.location.longitude == geoPoint.longitude,
               );
               _showReportDetails(report);
             },

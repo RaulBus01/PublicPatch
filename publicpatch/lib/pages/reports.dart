@@ -1,20 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BottomPanel.dart';
+import 'package:publicpatch/entity/CreateReport.dart';
 import 'package:publicpatch/entity/Report.dart';
 import 'package:publicpatch/mocks/MockReports.dart';
 import 'package:publicpatch/pages/reportsMap.dart';
 import 'package:publicpatch/components/GalleryView.dart';
+import 'package:publicpatch/service/report_Service.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
 
 import '../components/ImageCarousel.dart';
 
-class ReportsPage extends StatelessWidget {
+class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
 
   @override
+  _ReportsPageState createState() => _ReportsPageState();
+}
+
+class _ReportsPageState extends State<ReportsPage> {
+  List<Report> reports = [];
+
+  @override
+  void initState() {
+    super.initState();
+    getReports().then((value) => setState(() {
+          reports = value;
+        }));
+  }
+
+  Future<List<Report>> getReports() async {
+    try {
+      final reports = await ReportService().getReports();
+      return reports;
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    late List<Report> reports = getMockReports();
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
@@ -37,12 +63,12 @@ class ReportsPage extends StatelessWidget {
             for (var report in reports)
               ReportCard(
                 title: report.title,
-                location: '${report.longitude}, ${report.latitude}',
+                location: '${report.location}',
                 description: report.description,
                 imageUrls: report.imageUrls,
                 timeAgo: report.createdAt.toString(),
-                latitude: report.latitude,
-                longitude: report.longitude,
+                latitude: report.location.latitude,
+                longitude: report.location.longitude,
               ),
           ],
         ),
