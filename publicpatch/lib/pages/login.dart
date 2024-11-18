@@ -4,7 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BackgroundImage.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
-import 'package:publicpatch/entity/UserLogin.dart';
+import 'package:publicpatch/models/UserLogin.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/reports.dart';
 import 'package:publicpatch/pages/signup.dart';

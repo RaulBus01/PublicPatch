@@ -6,7 +6,7 @@ using PublicPatch.Services;
 namespace PublicPatch.Controllers
 {
     [ApiController]
-    [Route("api/[controller]/reports")]
+    [Route("reports")]
     public class ReportController : ControllerBase
     {
         private readonly ILogger<WeatherForecastController> _logger;
@@ -30,7 +30,7 @@ namespace PublicPatch.Controllers
             return Ok(report);
         }
 
-        [HttpGet("GetReport{id}")]
+        [HttpGet("GetReport/{id}")]
         public async Task<IActionResult> GetReport(int id)
         {
             var report = await reportService.GetReportById(id);
@@ -42,7 +42,7 @@ namespace PublicPatch.Controllers
             return Ok(report);
         }
 
-        [HttpGet("GetUserReports{userId}")]
+        [HttpGet("GetUserReports/{userId}")]
         public async Task<IActionResult> GetReportByUser(int userId)
         {
             var reports = await reportService.GetReportsByUser(userId);
@@ -54,7 +54,7 @@ namespace PublicPatch.Controllers
             return Ok(reports);
         }
 
-        [HttpPut("UpdateReport{reportId}")]
+        [HttpPut("UpdateReport/{reportId}")]
         public async Task<IActionResult> UpdateReport(int userId)
         {
             var reports = await reportService.GetReportsByUser(userId);

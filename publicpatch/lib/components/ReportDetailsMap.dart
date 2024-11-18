@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:publicpatch/components/ImageCarousel.dart';
-import 'package:publicpatch/entity/Report.dart';
+import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
@@ -42,8 +42,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
   Future<void> _getAddress() async {
     try {
       final placemarks = await placemarkFromCoordinates(
-        widget.report.location.latitude,
-        widget.report.location.longitude,
+        widget.report.location.latitude as double,
+        widget.report.location.longitude as double,
       );
 
       if (placemarks.isNotEmpty) {
@@ -110,8 +110,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                       onPressed: () {
                         MapUtils.shareLocationLink(
                             context,
-                            widget.report.location.latitude,
-                            widget.report.location.longitude,
+                            widget.report.location.latitude as double,
+                            widget.report.location.longitude as double,
                             address ?? '',
                             widget.report.title,
                             widget.report.description);
@@ -220,9 +220,10 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                                       onPressed: () async {
                                         final success =
                                             await MapUtils.openInMapApp(
-                                                widget.report.location.latitude,
-                                                widget
-                                                    .report.location.longitude);
+                                                widget.report.location.latitude
+                                                    as double,
+                                                widget.report.location.longitude
+                                                    as double);
                                         print(
                                             'Open in map app success: $success');
                                       },

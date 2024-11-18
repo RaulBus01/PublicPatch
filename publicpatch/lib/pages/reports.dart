@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BottomPanel.dart';
-import 'package:publicpatch/entity/CreateReport.dart';
-import 'package:publicpatch/entity/Report.dart';
-import 'package:publicpatch/mocks/MockReports.dart';
+import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/reportsMap.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:publicpatch/service/report_Service.dart';
@@ -30,13 +28,9 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Future<List<Report>> getReports() async {
-    try {
-      final reports = await ReportService().getReports();
-      return reports;
-    } catch (e) {
-      print(e);
-      return [];
-    }
+    final reportService = ReportService();
+
+    return await reportService.getReports();
   }
 
   @override
@@ -83,8 +77,8 @@ class ReportCard extends StatelessWidget {
   final String description;
   final List<String> imageUrls;
   final String timeAgo;
-  final double latitude;
-  final double longitude;
+  final int latitude;
+  final int longitude;
 
   const ReportCard({
     required this.title,
@@ -143,8 +137,8 @@ class ReportCard extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) => ReportsMapPage(
-                              latitude: latitude,
-                              longitude: longitude,
+                              latitude: latitude as double,
+                              longitude: longitude as double,
                             ),
                           ),
                         );
@@ -158,8 +152,8 @@ class ReportCard extends StatelessWidget {
                       onTap: () {
                         MapUtils.shareLocationLink(
                           context,
-                          latitude,
-                          longitude,
+                          latitude as double,
+                          longitude as double,
                           location,
                           title,
                           description,

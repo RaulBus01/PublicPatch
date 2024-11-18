@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:flutter/rendering.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:publicpatch/entity/Report.dart';
+import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/mocks/MockReports.dart';
 import 'package:publicpatch/components/ReportDetailsMap.dart';
 import 'package:publicpatch/components/GalleryView.dart';
@@ -23,7 +23,7 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
   late final MapController controller;
   late bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
-  final List<Report> mockReports = getMockReports();
+
   bool _mapIsReady = false;
 
   @override
@@ -47,20 +47,20 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
     if (!_mapIsReady) return;
 
     try {
-      for (final report in mockReports) {
-        final marker = await controller.addMarker(
-          GeoPoint(
-              latitude: report.location.latitude,
-              longitude: report.location.longitude),
-          markerIcon: MarkerIcon(
-            icon: Icon(
-              Icons.location_on,
-              color: Colors.red,
-              size: 48,
-            ),
-          ),
-        );
-      }
+      // for (final report in mockReports) {
+      //   final marker = await controller.addMarker(
+      //     GeoPoint(
+      //         latitude: report.location.latitude,
+      //         longitude: report.location.longitude),
+      //     markerIcon: MarkerIcon(
+      //       icon: Icon(
+      //         Icons.location_on,
+      //         color: Colors.red,
+      //         size: 48,
+      //       ),
+      //     ),
+      //   );
+      // }
 
       // Set up marker click listener
     } catch (e) {
@@ -95,12 +95,12 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
           OSMFlutter(
             controller: controller,
             onGeoPointClicked: (geoPoint) {
-              final report = mockReports.firstWhere(
-                (report) =>
-                    report.location.latitude == geoPoint.latitude &&
-                    report.location.longitude == geoPoint.longitude,
-              );
-              _showReportDetails(report);
+              // final report = mockReports.firstWhere(
+              //   (report) =>
+              //       report.location.latitude == geoPoint.latitude &&
+              //       report.location.longitude == geoPoint.longitude,
+              // );
+              // _showReportDetails(report);
             },
             onMapIsReady: (isReady) {
               if (isReady) {

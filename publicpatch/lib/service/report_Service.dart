@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
-import 'package:publicpatch/entity/Report.dart';
+import 'package:publicpatch/models/Report.dart';
 
 class ReportService {
   late final Dio _dio;
@@ -29,12 +29,12 @@ class ReportService {
   Future<String> createReport(Report report) async {
     try {
       final response = await _dio.post(
-        '/reports',
+        '/reports/CreateReport',
         data: {
           'title': report.title,
           'location': report.location,
           'description': report.description,
-          'category': report.category,
+          'category': report.categoryId,
           'images': report.imageUrls,
         },
         options: Options(
@@ -58,7 +58,7 @@ class ReportService {
   Future<Report> getReport(String id) async {
     try {
       final response = await _dio.get(
-        '/reports/$id',
+        '/reports/GetReport/$id',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ class ReportService {
   Future<List<Report>> getReports() async {
     try {
       final response = await _dio.get(
-        '/reports',
+        '/reports/GetUserReports/26',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -86,12 +86,13 @@ class ReportService {
           },
         ),
       );
-
+      print("Response: ${response.data}");
       return List<Report>.from(
           response.data.map((report) => Report.fromMap(report)));
     } on DioException catch (e) {
       throw Exception('Network error: ${e.message}');
     } catch (e) {
+      print("Error: $e");
       throw Exception('Network error: $e');
     }
   }

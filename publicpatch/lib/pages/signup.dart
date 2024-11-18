@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:publicpatch/components/BackgroundImage.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
-import 'package:publicpatch/entity/User.dart';
+import 'package:publicpatch/models/User.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/login.dart';
 import 'package:publicpatch/service/user_Service.dart';

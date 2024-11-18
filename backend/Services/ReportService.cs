@@ -38,7 +38,8 @@ namespace PublicPatch.Services
                 var scope = serviceScopeFactory.CreateScope();
                 using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
                 return mapper.Map<GetReportModel>(
-                    await dbContext.Reports.FirstOrDefaultAsync(e => e.Id == id));
+                    await dbContext.Reports.Include(r => r.Location).FirstOrDefaultAsync(r => r.Id == id));
+
             }
             catch (Exception e)
             {
@@ -58,7 +59,9 @@ namespace PublicPatch.Services
                 {
                     throw new ArgumentException("User not found");
                 }
-                var reports = await dbContext.Reports.Where(r => r.UserId == userId).ToListAsync();
+                
+                var reports = await dbContext.Reports.Where(r => r.UserId == userId)
+                    .Include(r => r.Location).ToListAsync();
                 return mapper.Map<IEnumerable<GetReportModel>>(reports);
             }
             catch (Exception e)
