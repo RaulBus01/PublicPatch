@@ -1,4 +1,8 @@
 {
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit"
+    },
+    "editor.formatOnSave": true,
     "dart.hotReloadOnSave": "all",
     "dart.flutterHotReloadOnSave": "all",
     "dart.previewHotReloadOnSaveWatcher": true

@@ -24,7 +24,7 @@ namespace PublicPatch.Profiles
                 email: source.Email,
                 createdAt: source.CreatedAt,
                 updatedAt: source.UpdatedAt
-                );       
+                );
         }
     }
     internal class GetUserModelEnumerableConverter : ITypeConverter<IEnumerable<UserEntity>, IEnumerable<GetUserModel>>

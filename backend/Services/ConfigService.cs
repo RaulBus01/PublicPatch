@@ -1,6 +1,5 @@
 
 using System.Text;
-using PublicPatch.ExtensionMethods;
 namespace PublicPatch.Services
 {
     public interface IConfigService

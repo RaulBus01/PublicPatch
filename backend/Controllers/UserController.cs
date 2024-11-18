@@ -38,7 +38,7 @@ namespace PublicPatch.Controllers
 
             await userService.AddUser(user);
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id } , user);
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
         [HttpPost("UpdateUser")]
