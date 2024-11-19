@@ -1,4 +1,6 @@
-﻿using Amazon.S3.Model.Internal.MarshallTransformations;
+﻿using Amazon.S3;
+using Amazon.S3.Model.Internal.MarshallTransformations;
+using Amazon.S3.Transfer;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,16 +24,20 @@ namespace PublicPatch.Services
     {
         private readonly ILogger<IReportService> logger;
         private readonly IServiceScopeFactory serviceScopeFactory;
+        private readonly IAmazonS3 s3Client;
+        private readonly string bucketName = "publichpatch";
         private readonly IMapper mapper;
 
         public ReportService(
             ILogger<IReportService> logger,
             IServiceScopeFactory serviceScopeFactory,
+            IAmazonS3 s3Client,
             IMapper mapper)
         {
             this.logger = logger;
             this.serviceScopeFactory = serviceScopeFactory;
             this.mapper = mapper;
+            this.s3Client = s3Client;
         }
         public async Task<GetReportModel> GetReportById(int id)
         {
@@ -95,11 +101,36 @@ namespace PublicPatch.Services
                     Status = createReportModel.Status,
                     CreatedAt = createReportModel.CreatedAt,
                     UpdatedAt = createReportModel.UpdatedAt,
-                 
                     Upvotes = createReportModel.Upvotes,
                     Downvotes = createReportModel.Downvotes,
-                    ReportImages = createReportModel.ReportImagesUrls.ToList()
+                    ReportImages = new List<string>()
                 };
+
+                foreach (var formFile in createReportModel.ReportImages)
+                {
+                    if (formFile.Length > 0)
+                    {
+                        var filePath = Path.GetTempFileName();
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await formFile.CopyToAsync(stream);
+                        }
+
+                        var uploadRequest = new TransferUtilityUploadRequest
+                        {
+                            InputStream = new FileStream(filePath, FileMode.Open, FileAccess.Read),
+                            Key = Path.GetFileName(formFile.FileName),
+                            BucketName = bucketName,
+                            CannedACL = S3CannedACL.PublicRead
+                        };
+
+                        var fileTransferUtility = new TransferUtility(s3Client);
+                        await fileTransferUtility.UploadAsync(uploadRequest);
+
+                        var s3Url = $"https://{bucketName}.s3.amazonaws.com/{Path.GetFileName(formFile.FileName)}";
+                        report.ReportImages.Add(s3Url);
+                    }
+                }
 
                 dbContext.Reports.Add(report);
                 await dbContext.SaveChangesAsync();
@@ -110,7 +141,6 @@ namespace PublicPatch.Services
                 throw;
             }
         }
-
         public async Task DeleteReport(int id)
         {
             try

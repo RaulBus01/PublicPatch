@@ -10,6 +10,7 @@ import 'package:publicpatch/components/CustomTextArea.dart';
 import 'package:publicpatch/models/CreateReport.dart';
 import 'package:publicpatch/models/Location.dart';
 import 'package:publicpatch/models/Report.dart';
+import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/report.dart';
 import 'package:publicpatch/pages/reports.dart';
 import 'package:publicpatch/service/report_Service.dart';
@@ -219,7 +220,8 @@ class _ReportFormState extends State<ReportFormPage> {
               Padding(padding: EdgeInsets.only(top: 15)),
               CustomTextArea(
                   controller: _descriptionController,
-                  title: 'Description', preFixIcon: Icons.description),
+                  title: 'Description',
+                  preFixIcon: Icons.description),
               Padding(padding: EdgeInsets.only(top: 40)),
               ElevatedButton(
                 onPressed: () async {
@@ -248,9 +250,7 @@ class _ReportFormState extends State<ReportFormPage> {
                           gravity: ToastGravity.TOP);
 
                       Navigator.pushReplacement(
-                          context,
-                          CreateRoute.createRoute(
-                              ReportsPage())); // Navigate to reports page
+                          context, CreateRoute.createRoute(HomePage()));
                     } catch (e) {
                       Fluttertoast.showToast(
                           backgroundColor: Colors.red,

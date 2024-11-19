@@ -1,5 +1,8 @@
 using System.Text;
+using Amazon;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PublicPatch.Data;
@@ -42,7 +45,7 @@ builder.Services.AddSwaggerGen(o =>
             }
         });
 });
-
+builder.Services.Configure<S3Settingscs>(builder.Configuration.GetSection("S3Settings"));
 
 builder.Services.AddScoped<IConfigService, ConfigService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -50,6 +53,16 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped(typeof(PPContext));
 
 builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var s3Settings = sp.GetRequiredService<IOptions<S3Settingscs>>().Value;
+    var config = new AmazonS3Config
+    {
+        RegionEndpoint = RegionEndpoint.GetBySystemName(s3Settings.Region)
+    };
+    return new AmazonS3Client(config);
+});
+
 
 
 
