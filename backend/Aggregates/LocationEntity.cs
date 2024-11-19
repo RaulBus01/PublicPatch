@@ -8,7 +8,7 @@ namespace PublicPatch.Aggregates
         public LocationEntity()
         {
         }
-        public LocationEntity(decimal longitude, decimal latitude, string address)
+        public LocationEntity(double longitude, double latitude, string address)
         {
             Longitude = longitude;
             Latitude = latitude;
@@ -17,8 +17,8 @@ namespace PublicPatch.Aggregates
 
         [Key]
         public int Id { get; set; }
-        public decimal Longitude { get; set; }
-        public decimal Latitude { get; set; }
+        public double Longitude { get; set; }
+        public double Latitude { get; set; }
         public string Address { get; set; }
     }
 }

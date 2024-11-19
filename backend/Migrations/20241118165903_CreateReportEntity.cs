@@ -18,8 +18,8 @@ namespace PublicPatch.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Longitude = table.Column<decimal>(type: "numeric", nullable: false),
-                    Latitude = table.Column<decimal>(type: "numeric", nullable: false),
+                    Longitude = table.Column<double>(type: "numeric", nullable: false),
+                    Latitude = table.Column<double>(type: "numeric", nullable: false),
                     Address = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>

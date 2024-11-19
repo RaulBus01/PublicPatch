@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class UserSecureStorage {
   static const _storage = FlutterSecureStorage();
@@ -9,6 +10,14 @@ class UserSecureStorage {
     await _storage.write(key: _keyToken, value: token);
   }
 
+  static Future<int> getUserId() async {
+    final token = await getToken();
+    if (token == null) return 0;
+    final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    print(decodedToken);
+    return int.parse(decodedToken['sub']);
+  }
+
   static Future<String?> getToken() async {
     return await _storage.read(key: _keyToken);
   }
@@ -16,6 +25,4 @@ class UserSecureStorage {
   static Future<void> deleteToken() async {
     await _storage.delete(key: _keyToken);
   }
-  
-
 }

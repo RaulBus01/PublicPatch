@@ -65,5 +65,14 @@ namespace PublicPatch.Controllers
 
             return Ok(reports);
         }
+
+        [HttpDelete("DeleteReport/{reportId}")]
+        public async Task<IActionResult> DeleteReport(int reportId)
+        {
+            await reportService.DeleteReport(reportId);
+            return Ok("Report deleted");
+
+
+        }
     }
 }

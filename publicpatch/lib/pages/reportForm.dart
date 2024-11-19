@@ -7,6 +7,15 @@ import 'package:publicpatch/components/CustomDropDown.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
 
 import 'package:publicpatch/components/CustomTextArea.dart';
+import 'package:publicpatch/models/CreateReport.dart';
+import 'package:publicpatch/models/Location.dart';
+import 'package:publicpatch/models/Report.dart';
+import 'package:publicpatch/pages/report.dart';
+import 'package:publicpatch/pages/reports.dart';
+import 'package:publicpatch/service/report_Service.dart';
+import 'package:publicpatch/service/user_Service.dart';
+import 'package:publicpatch/service/user_secure.dart';
+import 'package:publicpatch/utils/create_route.dart';
 
 class ReportFormPage extends StatefulWidget {
   const ReportFormPage({super.key});
@@ -19,13 +28,12 @@ class _ReportFormState extends State<ReportFormPage> {
   final ImagePicker _picker = ImagePicker();
   // final FilePicker _filePicker = await FilePicker.platform.pickFiles();
   final List<File> _images = [];
+  ReportService reportService = ReportService();
 
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _categoryController = TextEditingController();
-  final _imageController = TextEditingController();
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -210,13 +218,50 @@ class _ReportFormState extends State<ReportFormPage> {
               _buildImageCard(),
               Padding(padding: EdgeInsets.only(top: 15)),
               CustomTextArea(
+                  controller: _descriptionController,
                   title: 'Description', preFixIcon: Icons.description),
               Padding(padding: EdgeInsets.only(top: 40)),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    try {
+                      final report = CreateReport(
+                          title: _titleController.text,
+                          location: Location(
+                            latitude: 0.0,
+                            longitude: 0.0,
+                            address: 'ads',
+                          ),
+                          description: _descriptionController.text,
+                          categoryId: 1,
+                          imageUrls: _images.map((e) => e.path).toList(),
+                          userId: await UserSecureStorage.getUserId());
+
+                      var responseData =
+                          await ReportService().createReport(report);
+                      if (responseData == null) {
+                        throw Exception('Failed to create report');
+                      }
+                      print(responseData.toMap());
+                      Fluttertoast.showToast(
+                          msg: 'Report created successfully',
+                          gravity: ToastGravity.TOP);
+
+                      Navigator.pushReplacement(
+                          context,
+                          CreateRoute.createRoute(
+                              ReportsPage())); // Navigate to reports page
+                    } catch (e) {
+                      Fluttertoast.showToast(
+                          backgroundColor: Colors.red,
+                          msg: e.toString(),
+                          gravity: ToastGravity.TOP);
+                    }
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
-                  backgroundColor: Colors.transparent,
+                  backgroundColor: Colors.blue,
                   shadowColor: Colors.transparent,
                 ),
                 child: Text(

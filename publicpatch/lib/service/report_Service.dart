@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:publicpatch/models/CreateReport.dart';
 import 'package:publicpatch/models/Report.dart';
 
 class ReportService {
@@ -26,17 +27,31 @@ class ReportService {
     };
   }
 
-  Future<String> createReport(Report report) async {
+  Future<Report?> createReport(CreateReport report) async {
     try {
-      final response = await _dio.post(
-        '/reports/CreateReport',
-        data: {
-          'title': report.title,
-          'location': report.location,
-          'description': report.description,
-          'category': report.categoryId,
-          'images': report.imageUrls,
+      final data = {
+        'Title': report.title,
+        'location': {
+          'longitude': report.location.longitude,
+          'latitude': report.location.latitude,
+          'address': report.location.address
         },
+        'CategoryId': report.categoryId,
+        'Description': report.description,
+        'UserId': report.userId,
+        'Status': report.status ?? 1,
+        'CreatedAt': DateTime.now().toUtc().toIso8601String(),
+        'UpdatedAt': DateTime.now().toUtc().toIso8601String(),
+        'Upvotes': 0,
+        'Downvotes': 0,
+        'ReportImagesUrls': report.imageUrls,
+      };
+
+      print('Request data: ${data.toString()}'); // Debug log
+
+      final response = await _dio.post(
+        '/reports/CreteReport',
+        data: data,
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -45,17 +60,17 @@ class ReportService {
         ),
       );
 
-      return response.statusCode == 200 || response.statusCode == 201
-          ? response.toString()
-          : '';
-    } on DioException catch (e) {
-      throw Exception('Network error: ${e.message}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data != null ? Report.fromMap(response.data) : null;
+      }
+      throw Exception('Failed to create report: ${response.statusMessage}');
     } catch (e) {
-      throw Exception('Network error: $e');
+      print('Error: $e');
+      throw Exception('Error creating report: $e');
     }
   }
 
-  Future<Report> getReport(String id) async {
+  Future<Report> getReport(int id) async {
     try {
       final response = await _dio.get(
         '/reports/GetReport/$id',
@@ -67,7 +82,10 @@ class ReportService {
         ),
       );
 
-      return Report.fromMap(response.data);
+      if (response.statusCode == 200) {
+        return Report.fromMap(response.data);
+      }
+      throw Exception('Failed to get report: ${response.statusMessage}');
     } on DioException catch (e) {
       throw Exception('Network error: ${e.message}');
     } catch (e) {
@@ -75,10 +93,10 @@ class ReportService {
     }
   }
 
-  Future<List<Report>> getReports() async {
+  Future<List<Report>> getReports(int userId) async {
     try {
       final response = await _dio.get(
-        '/reports/GetUserReports/26',
+        '/reports/GetUserReports/$userId',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -93,6 +111,28 @@ class ReportService {
       throw Exception('Network error: ${e.message}');
     } catch (e) {
       print("Error: $e");
+      throw Exception('Network error: $e');
+    }
+  }
+
+  Future<String> deleteReport(int reportId) async {
+    try {
+      final response = await _dio.delete(
+        '/reports/DeleteReport/$reportId',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201
+          ? response.toString()
+          : '';
+    } on DioException catch (e) {
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
       throw Exception('Network error: $e');
     }
   }

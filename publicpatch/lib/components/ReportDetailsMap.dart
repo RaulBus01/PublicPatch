@@ -42,8 +42,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
   Future<void> _getAddress() async {
     try {
       final placemarks = await placemarkFromCoordinates(
-        widget.report.location.latitude as double,
-        widget.report.location.longitude as double,
+        widget.report.location.latitude,
+        widget.report.location.longitude,
       );
 
       if (placemarks.isNotEmpty) {
@@ -110,8 +110,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                       onPressed: () {
                         MapUtils.shareLocationLink(
                             context,
-                            widget.report.location.latitude as double,
-                            widget.report.location.longitude as double,
+                            widget.report.location.latitude,
+                            widget.report.location.longitude,
                             address ?? '',
                             widget.report.title,
                             widget.report.description);
@@ -220,10 +220,9 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                                       onPressed: () async {
                                         final success =
                                             await MapUtils.openInMapApp(
-                                                widget.report.location.latitude
-                                                    as double,
-                                                widget.report.location.longitude
-                                                    as double);
+                                                widget.report.location.latitude,
+                                                widget
+                                                    .report.location.longitude);
                                         print(
                                             'Open in map app success: $success');
                                       },

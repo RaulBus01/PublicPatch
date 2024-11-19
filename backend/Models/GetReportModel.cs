@@ -6,6 +6,8 @@ namespace PublicPatch.Models
 {
     public class GetReportModel
     {
+
+        public int Id { get; set; }
         public string Title { get; set; }
         public LocationEntity Location { get; set; }
         public int CategoryId { get; set; }

@@ -15,6 +15,8 @@ namespace PublicPatch.Services
         Task CreateReport(CreateReportModel createReportModel);
         Task<IEnumerable<CategoryEntity>> GetCategories();
         Task<int> CreateCategory(CreateCategoryModel categoryModel);
+
+        Task DeleteReport(int id);
     }
     public class ReportService : IReportService
     {
@@ -93,7 +95,7 @@ namespace PublicPatch.Services
                     Status = createReportModel.Status,
                     CreatedAt = createReportModel.CreatedAt,
                     UpdatedAt = createReportModel.UpdatedAt,
-                    ResolvedAt = createReportModel.ResolvedAt,
+                 
                     Upvotes = createReportModel.Upvotes,
                     Downvotes = createReportModel.Downvotes,
                     ReportImages = createReportModel.ReportImagesUrls.ToList()
@@ -105,6 +107,27 @@ namespace PublicPatch.Services
             catch (Exception e)
             {
                 logger.LogError($"{nameof(CreateReport)}: Error while creating the report", e);
+                throw;
+            }
+        }
+
+        public async Task DeleteReport(int id)
+        {
+            try
+            {
+                var scope = serviceScopeFactory.CreateScope();
+                using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+                var report = await dbContext.Reports.FirstOrDefaultAsync(r => r.Id == id);
+                if (report == null)
+                {
+                    throw new ArgumentException("Report not found");
+                }
+                dbContext.Reports.Remove(report);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(DeleteReport)}: Error while deleting the report", e);
                 throw;
             }
         }

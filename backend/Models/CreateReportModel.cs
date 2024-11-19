@@ -14,7 +14,6 @@ namespace PublicPatch.Models
         public Status Status { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? ResolvedAt { get; set; }
         public int Upvotes { get; set; }
         public int Downvotes { get; set; }
         public IList<string> ReportImagesUrls { get; set; } = new List<string>();

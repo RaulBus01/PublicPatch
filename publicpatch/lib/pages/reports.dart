@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BottomPanel.dart';
+import 'package:publicpatch/models/Location.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/reportsMap.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:publicpatch/service/report_Service.dart';
+import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
 
 import '../components/ImageCarousel.dart';
@@ -19,6 +22,12 @@ class ReportsPage extends StatefulWidget {
 class _ReportsPageState extends State<ReportsPage> {
   List<Report> reports = [];
 
+  void _handleDelete(int id) {
+    setState(() {
+      reports.removeWhere((element) => element.id == id);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -29,8 +38,8 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Future<List<Report>> getReports() async {
     final reportService = ReportService();
-
-    return await reportService.getReports();
+    final userId = await UserSecureStorage.getUserId();
+    return await reportService.getReports(userId);
   }
 
   @override
@@ -56,13 +65,13 @@ class _ReportsPageState extends State<ReportsPage> {
           children: [
             for (var report in reports)
               ReportCard(
+                id: report.id,
                 title: report.title,
-                location: '${report.location}',
+                location: report.location,
                 description: report.description,
                 imageUrls: report.imageUrls,
                 timeAgo: report.createdAt.toString(),
-                latitude: report.location.latitude,
-                longitude: report.location.longitude,
+                onDelete: _handleDelete,
               ),
           ],
         ),
@@ -72,22 +81,22 @@ class _ReportsPageState extends State<ReportsPage> {
 }
 
 class ReportCard extends StatelessWidget {
+  final int id;
   final String title;
-  final String location;
+  final Location location;
   final String description;
   final List<String> imageUrls;
   final String timeAgo;
-  final int latitude;
-  final int longitude;
+  final Function(int) onDelete;
 
   const ReportCard({
+    required this.id,
     required this.title,
     required this.location,
     required this.description,
     required this.imageUrls,
     required this.timeAgo,
-    required this.latitude,
-    required this.longitude,
+    required this.onDelete,
     super.key,
   });
 
@@ -118,7 +127,7 @@ class ReportCard extends StatelessWidget {
                         color: Colors.white54, size: 24),
                     const SizedBox(width: 4),
                     SelectableText(
-                      location,
+                      '${location.address},${location.latitude}, ${location.longitude}',
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ],
@@ -137,8 +146,8 @@ class ReportCard extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) => ReportsMapPage(
-                              latitude: latitude as double,
-                              longitude: longitude as double,
+                              latitude: location.latitude,
+                              longitude: location.longitude,
                             ),
                           ),
                         );
@@ -152,9 +161,9 @@ class ReportCard extends StatelessWidget {
                       onTap: () {
                         MapUtils.shareLocationLink(
                           context,
-                          latitude as double,
-                          longitude as double,
-                          location,
+                          location.latitude,
+                          location.longitude,
+                          location.toString(),
                           title,
                           description,
                         );
@@ -175,12 +184,60 @@ class ReportCard extends StatelessWidget {
                       leading: const Icon(Icons.delete, color: Colors.white54),
                       title: const Text('Delete Report',
                           style: TextStyle(color: Colors.white)),
-                      onTap: () {
+                      onTap: () async {
                         Navigator.pop(context);
-                        print('Delete Report');
+                        final bool? confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              backgroundColor: const Color(0XFF1B1D29),
+                              title: const Text('Confirm Deletion',
+                                  style: TextStyle(color: Colors.white)),
+                              content: const Text(
+                                  style: TextStyle(color: Colors.white),
+                                  'Are you sure you want to delete this report?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('CANCEL'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('DELETE'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (confirm == true) {
+                          try {
+                            await ReportService().deleteReport(id);
+
+                            if (context.mounted) {
+                              onDelete(id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Report deleted successfully'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to delete report: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        }
                       },
                     ),
-                  ], // Menu options passed to the bottom panel
+                  ],
                 ),
               ],
             ),

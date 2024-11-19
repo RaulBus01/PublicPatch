@@ -6,9 +6,7 @@ import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:flutter/rendering.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/models/Report.dart';
-import 'package:publicpatch/mocks/MockReports.dart';
 import 'package:publicpatch/components/ReportDetailsMap.dart';
-import 'package:publicpatch/components/GalleryView.dart';
 
 class ReportsMapPage extends StatefulWidget {
   final double? longitude, latitude;
