@@ -65,5 +65,17 @@ namespace PublicPatch.Controllers
 
             return Ok(reports);
         }
+
+        [HttpGet("GetReportsByZone{location}")]
+        public async Task<IActionResult> GetReportsByZone(GetReportsLocation location )
+        {
+            var reports = reportService.GetReportsByZone(location);
+            if (reports.Count() == 0)
+            {
+                return NotFound();
+            }
+
+            return Ok(reports);
+        }
     }
 }
