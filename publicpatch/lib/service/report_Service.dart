@@ -50,7 +50,7 @@ class ReportService {
       print('Request data: ${data.toString()}'); // Debug log
 
       final response = await _dio.post(
-        '/reports/CreteReport',
+        '/reports/CreateReport',
         data: data,
         options: Options(
           headers: {

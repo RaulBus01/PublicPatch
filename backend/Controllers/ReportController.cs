@@ -22,7 +22,7 @@ namespace PublicPatch.Controllers
             this.reportService = reportService;
         }
 
-        [HttpPost("CreteReport")]
+        [HttpPost("CreateReport")]
         public async Task<IActionResult>CreateReport([FromBody] CreateReportModel report)
         {
             await reportService.CreateReport(report);
