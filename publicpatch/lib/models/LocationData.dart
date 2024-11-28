@@ -1,16 +1,16 @@
-class Location {
+class LocationData {
   final double latitude;
   final double longitude;
   final String address;
 
-  Location({
+  LocationData({
     required this.latitude,
     required this.longitude,
     required this.address,
   });
 
-  factory Location.fromMap(Map<String, dynamic> map) {
-    return Location(
+  factory LocationData.fromMap(Map<String, dynamic> map) {
+    return LocationData(
       latitude: (map['latitude'] ?? 0.0).toDouble(),
       longitude: (map['longitude'] ?? 0.0).toDouble(),
       address: map['address'] ?? '',

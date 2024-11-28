@@ -1,9 +1,9 @@
-import 'package:publicpatch/models/Location.dart';
+import 'package:publicpatch/models/LocationData.dart';
 
 class CreateReport {
   final String title;
   final int categoryId;
-  final Location location;
+  final LocationData location;
   final String description;
   final int userId;
   final int status = 0;
@@ -27,7 +27,7 @@ class CreateReport {
     return CreateReport(
       title: map['title'] ?? '',
       categoryId: map['categoryId'] ?? 0,
-      location: Location(
+      location: LocationData(
         latitude: (map['latitude'] ?? 0.0).toDouble(),
         longitude: (map['longitude'] ?? 0.0).toDouble(),
         address: map['address'] ?? '',

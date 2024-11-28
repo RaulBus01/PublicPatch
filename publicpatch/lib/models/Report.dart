@@ -1,10 +1,10 @@
-import "package:publicpatch/models/Location.dart";
+import "package:publicpatch/models/LocationData.dart";
 
 class Report {
   final int id;
   final String title;
   final int categoryId;
-  final Location location;
+  final LocationData location;
   final String description;
   final int userId;
   final int status;
@@ -34,7 +34,7 @@ class Report {
   factory Report.fromMap(Map<String, dynamic> map) {
     return Report(
       id: map['id'] ?? 0,
-      location: Location.fromMap(map['location'] ?? {}),
+      location: LocationData.fromMap(map['location'] ?? {}),
       title: map['title'] ?? '',
       description: map['description'] ?? '',
       userId: map['userId'] ?? 0,

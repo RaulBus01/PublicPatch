@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BottomPanel.dart';
-import 'package:publicpatch/models/Location.dart';
+import 'package:publicpatch/models/LocationData.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/reportsMap.dart';
 import 'package:publicpatch/components/GalleryView.dart';
@@ -28,18 +28,34 @@ class _ReportsPageState extends State<ReportsPage> {
     });
   }
 
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    getReports().then((value) => setState(() {
-          reports = value;
-        }));
+    _loadReports();
   }
 
-  Future<List<Report>> getReports() async {
-    final reportService = ReportService();
-    final userId = await UserSecureStorage.getUserId();
-    return await reportService.getReports(userId);
+  Future<void> _loadReports() async {
+    try {
+      final reportService = ReportService();
+      final userId = await UserSecureStorage.getUserId();
+      final fetchedReports = await reportService.getReports(userId);
+
+      if (mounted) {
+        // Check if widget is still in tree
+        setState(() {
+          reports = fetchedReports;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -83,7 +99,7 @@ class _ReportsPageState extends State<ReportsPage> {
 class ReportCard extends StatelessWidget {
   final int id;
   final String title;
-  final Location location;
+  final LocationData location;
   final String description;
   final List<String> imageUrls;
   final String timeAgo;
@@ -126,9 +142,13 @@ class ReportCard extends StatelessWidget {
                     const Icon(Ionicons.location_outline,
                         color: Colors.white54, size: 24),
                     const SizedBox(width: 4),
-                    SelectableText(
-                      '${location.address},${location.latitude}, ${location.longitude}',
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.6,
+                      child: SelectableText(
+                        location.address,
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 14),
+                      ),
                     ),
                   ],
                 ),

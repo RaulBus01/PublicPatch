@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:publicpatch/components/CustomDropDown.dart';
@@ -8,7 +9,7 @@ import 'package:publicpatch/components/CustomFormInput.dart';
 
 import 'package:publicpatch/components/CustomTextArea.dart';
 import 'package:publicpatch/models/CreateReport.dart';
-import 'package:publicpatch/models/Location.dart';
+import 'package:publicpatch/models/LocationData.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/report.dart';
@@ -29,6 +30,7 @@ class _ReportFormState extends State<ReportFormPage> {
   final ImagePicker _picker = ImagePicker();
   // final FilePicker _filePicker = await FilePicker.platform.pickFiles();
   final List<File> _images = [];
+  LocationData? _selectedLocation;
   ReportService reportService = ReportService();
 
   final _formKey = GlobalKey<FormState>();
@@ -168,6 +170,26 @@ class _ReportFormState extends State<ReportFormPage> {
     );
   }
 
+  bool _validateForm() {
+    if (!_formKey.currentState!.validate()) return false;
+    if (_selectedLocation == null) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: 'Please select a location',
+          gravity: ToastGravity.TOP);
+      return false;
+    }
+    if (_titleController.text.isEmpty) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: 'Title cannot be empty',
+          gravity: ToastGravity.TOP);
+      return false;
+    }
+    //TODO: Add validation for category
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,9 +229,18 @@ class _ReportFormState extends State<ReportFormPage> {
                   preFixIcon: Icons.title),
               Padding(padding: EdgeInsets.only(top: 20)),
               CustomFormInput(
-                  controller: _locationController,
-                  title: 'Location',
-                  preFixIcon: Icons.location_on),
+                controller: _locationController,
+                title: 'Location',
+                preFixIcon: Icons.location_on,
+                suffixIcon: Icons.my_location_outlined,
+                onLocationSelected: (dynamic location) {
+                  if (location is LocationData) {
+                    setState(() {
+                      _selectedLocation = location;
+                    });
+                  }
+                },
+              ),
               Padding(padding: EdgeInsets.only(top: 20)),
               CustomDropDown<String>(
                 initialValue: 'Select Category',
@@ -225,15 +256,11 @@ class _ReportFormState extends State<ReportFormPage> {
               Padding(padding: EdgeInsets.only(top: 40)),
               ElevatedButton(
                 onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
+                  if (_validateForm()) {
                     try {
                       final report = CreateReport(
                           title: _titleController.text,
-                          location: Location(
-                            latitude: 0.0,
-                            longitude: 0.0,
-                            address: 'ads',
-                          ),
+                          location: _selectedLocation!,
                           description: _descriptionController.text,
                           categoryId: 1,
                           imageUrls: _images.map((e) => e.path).toList(),
