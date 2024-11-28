@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:flutter/material.dart';
 import 'package:publicpatch/models/CreateReport.dart';
 import 'package:publicpatch/models/Report.dart';
 
@@ -39,15 +40,13 @@ class ReportService {
         'CategoryId': report.categoryId,
         'Description': report.description,
         'UserId': report.userId,
-        'Status': report.status ?? 1,
+        'Status': report.status ?? 0,
         'CreatedAt': DateTime.now().toUtc().toIso8601String(),
         'UpdatedAt': DateTime.now().toUtc().toIso8601String(),
         'Upvotes': 0,
         'Downvotes': 0,
         'ReportImagesUrls': report.imageUrls,
       };
-
-      print('Request data: ${data.toString()}'); // Debug log
 
       final response = await _dio.post(
         '/reports/CreateReport',
@@ -59,7 +58,7 @@ class ReportService {
           },
         ),
       );
-
+      debugPrint('Response creation: ${response.data}'); // Debug log
       if (response.statusCode == 200 || response.statusCode == 201) {
         return response.data != null ? Report.fromMap(response.data) : null;
       }
@@ -104,7 +103,7 @@ class ReportService {
           },
         ),
       );
-      print("Response: ${response.data}");
+
       return List<Report>.from(
           response.data.map((report) => Report.fromMap(report)));
     } on DioException catch (e) {

@@ -52,25 +52,17 @@ class _CustomFormInputState extends State<CustomFormInput> {
               ? IconButton(
                   onPressed: () async {
                     try {
-                      print('Getting location');
+                      widget.controller.text = 'Getting location...';
                       Position position = await determinePosition();
                       String address = await determineAddress(position);
-
-                      final locationData = {
-                        'latitude': position.latitude,
-                        'longitude': position.longitude,
-                        'address': address
-                      };
 
                       widget.controller.text = address;
 
                       if (widget.onLocationSelected != null) {
-                        widget.onLocationSelected!(
-                            LocationData(
-                                latitude: position.latitude,
-                                longitude: position.longitude,
-                                address: address));
-
+                        widget.onLocationSelected!(LocationData(
+                            latitude: position.latitude,
+                            longitude: position.longitude,
+                            address: address));
                       }
                     } catch (e) {
                       print(e);

@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:publicpatch/models/Category.dart';
 
 class CustomDropDown<T> extends StatefulWidget {
   final T initialValue;
   final List<T> items;
+  final Function(T) onChanged;
+  final Widget Function(T) itemBuilder; // Add itemBuilder for custom display
 
   const CustomDropDown({
     super.key,
     required this.initialValue,
     required this.items,
+    required this.onChanged,
+    required this.itemBuilder, // Add itemBuilder for custom display
   });
 
   @override
@@ -16,12 +21,12 @@ class CustomDropDown<T> extends StatefulWidget {
 }
 
 class _CustomDropDownState<T> extends State<CustomDropDown<T>> {
-  late T initialValue;
+  late T selectedValue;
 
   @override
   void initState() {
     super.initState();
-    initialValue = widget.initialValue;
+    selectedValue = widget.initialValue;
   }
 
   void _showBottomSheet() {
@@ -36,41 +41,31 @@ class _CustomDropDownState<T> extends State<CustomDropDown<T>> {
               topRight: Radius.circular(16),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: widget.items.map((T value) {
-              return Material(
-                borderRadius: BorderRadius.circular(5),
-                color: Colors.transparent,
-                child: InkWell(
-                  splashColor: Color(0xFF768196),
-                  child: ListTile(
-                    minVerticalPadding: 20,
-                    title: Row(
-                      children: [
-                        Padding(padding: const EdgeInsets.only(right: 10)),
-                        Icon(
-                          Icons.category,
-                          color: const Color(0xFF768196),
-                        ),
-                        Padding(padding: const EdgeInsets.only(right: 10)),
-                        Text(
-                          value.toString(),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    iconColor: Colors.white,
-                    onTap: () {
-                      setState(() {
-                        initialValue = value;
-                      });
-                      Navigator.pop(context);
-                    },
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: widget.items.length,
+            itemBuilder: (context, index) {
+              final item = widget.items[index];
+              return ListTile(
+                title: widget.itemBuilder(item),
+                contentPadding: const EdgeInsets.only(left: 16, right: 16),
+                trailing: IconButton(
+                  icon: Icon(
+                    Icons.info_outline,
+                    color: Color(0xFF768196),
+                    size: 24,
                   ),
+                  onPressed: () {
+                    print('Info');
+                  },
                 ),
+                onTap: () {
+                  setState(() => selectedValue = item);
+                  widget.onChanged(item);
+                  Navigator.pop(context);
+                },
               );
-            }).toList(),
+            },
           ),
         );
       },
@@ -92,19 +87,8 @@ class _CustomDropDownState<T> extends State<CustomDropDown<T>> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.category,
-                  color: const Color(0xFF768196),
-                ),
-                Padding(padding: const EdgeInsets.only(right: 10)),
-                Text(
-                  initialValue.toString(),
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
+            widget.itemBuilder(
+                selectedValue), // Use itemBuilder for custom display
             const Icon(Ionicons.chevron_down_outline, color: Color(0xFF768196)),
           ],
         ),

@@ -8,16 +8,19 @@ import 'package:publicpatch/components/CustomDropDown.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
 
 import 'package:publicpatch/components/CustomTextArea.dart';
+import 'package:publicpatch/models/Category.dart';
 import 'package:publicpatch/models/CreateReport.dart';
 import 'package:publicpatch/models/LocationData.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/report.dart';
 import 'package:publicpatch/pages/reports.dart';
+import 'package:publicpatch/service/category_Service.dart';
 import 'package:publicpatch/service/report_Service.dart';
 import 'package:publicpatch/service/user_Service.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/create_route.dart';
+import 'package:publicpatch/utils/getIcon.dart';
 
 class ReportFormPage extends StatefulWidget {
   const ReportFormPage({super.key});
@@ -32,6 +35,27 @@ class _ReportFormState extends State<ReportFormPage> {
   final List<File> _images = [];
   LocationData? _selectedLocation;
   ReportService reportService = ReportService();
+  CategoryService categoryService = CategoryService();
+
+  List<Category> _categories = [];
+  Category? _selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await categoryService.getCategories();
+      setState(() {
+        _categories = categories;
+      });
+    } catch (e) {
+      print('Error loading categories: $e');
+    }
+  }
 
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
@@ -43,7 +67,6 @@ class _ReportFormState extends State<ReportFormPage> {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null) {
         setState(() {
-          debugPrint(_images.length.toString());
           if (_images.length < 6) {
             _images.add(File(image.path));
             Fluttertoast.showToast(
@@ -172,17 +195,18 @@ class _ReportFormState extends State<ReportFormPage> {
 
   bool _validateForm() {
     if (!_formKey.currentState!.validate()) return false;
-    if (_selectedLocation == null) {
-      Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: 'Please select a location',
-          gravity: ToastGravity.TOP);
-      return false;
-    }
+
     if (_titleController.text.isEmpty) {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
           msg: 'Title cannot be empty',
+          gravity: ToastGravity.TOP);
+      return false;
+    }
+    if (_selectedLocation == null) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: 'Please select a location',
           gravity: ToastGravity.TOP);
       return false;
     }
@@ -242,9 +266,27 @@ class _ReportFormState extends State<ReportFormPage> {
                 },
               ),
               Padding(padding: EdgeInsets.only(top: 20)),
-              CustomDropDown<String>(
-                initialValue: 'Select Category',
-                items: ['Category 1', 'Category 2', 'Category 3'],
+              CustomDropDown<Category>(
+                initialValue: _selectedCategory ??
+                    Category(id: 0, name: 'Select Category', description: ''),
+                items: _categories,
+                onChanged: (category) => setState(
+                  () => _selectedCategory = category,
+                ),
+                itemBuilder: (category) => Row(
+                  children: [
+                    Icon(
+                      getIconFromString(category.icon ?? ''),
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      category.name,
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                  ],
+                ),
               ),
               Padding(padding: EdgeInsets.only(top: 20)),
               _buildImageCard(),
@@ -262,16 +304,16 @@ class _ReportFormState extends State<ReportFormPage> {
                           title: _titleController.text,
                           location: _selectedLocation!,
                           description: _descriptionController.text,
-                          categoryId: 1,
+                          categoryId: _selectedCategory!.id,
                           imageUrls: _images.map((e) => e.path).toList(),
                           userId: await UserSecureStorage.getUserId());
-
+                      print('Report data: ${report.toMap()}');
                       var responseData =
                           await ReportService().createReport(report);
                       if (responseData == null) {
                         throw Exception('Failed to create report');
                       }
-                      print(responseData.toMap());
+
                       Fluttertoast.showToast(
                           msg: 'Report created successfully',
                           gravity: ToastGravity.TOP);

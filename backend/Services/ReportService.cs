@@ -90,6 +90,10 @@ namespace PublicPatch.Services
                 {
                     throw new ArgumentException("User not found");
                 }
+                if(!await dbContext.Categories.AnyAsync(u => u.Id == createReportModel.CategoryId))
+                {
+                    throw new ArgumentException("Category not found");
+                }
 
                 var report = new ReportEntity()
                 {
@@ -154,7 +158,8 @@ namespace PublicPatch.Services
             var category = new CategoryEntity()
             {
                 Name = categoryModel.Name,
-                Description = categoryModel.Description
+                Description = categoryModel.Description,
+                Icon = categoryModel.Description
             };
 
             dbContext.Categories.Add(category);
