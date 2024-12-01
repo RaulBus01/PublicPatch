@@ -5,6 +5,7 @@ import 'package:dio/io.dart';
 import 'package:flutter/material.dart';
 import 'package:publicpatch/models/CreateReport.dart';
 import 'package:publicpatch/models/Report.dart';
+import 'package:publicpatch/service/image_Service.dart';
 
 class ReportService {
   late final Dio _dio;
@@ -30,6 +31,8 @@ class ReportService {
 
   Future<Report?> createReport(CreateReport report) async {
     try {
+      final imageUrls = await ImageService().uploadImages(report.imageUrls);
+      debugPrint('Image URLs: $imageUrls'); // Debug log
       final data = {
         'Title': report.title,
         'location': {
@@ -45,7 +48,7 @@ class ReportService {
         'UpdatedAt': DateTime.now().toUtc().toIso8601String(),
         'Upvotes': 0,
         'Downvotes': 0,
-        'ReportImagesUrls': report.imageUrls,
+        'ReportImages': imageUrls,
       };
 
       final response = await _dio.post(
@@ -58,7 +61,7 @@ class ReportService {
           },
         ),
       );
-      debugPrint('Response creation: ${response.data}'); // Debug log
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         return response.data != null ? Report.fromMap(response.data) : null;
       }

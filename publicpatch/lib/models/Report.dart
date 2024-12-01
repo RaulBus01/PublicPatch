@@ -13,7 +13,7 @@ class Report {
   final DateTime? resolvedAt;
   final int upvotes;
   final int downvotes;
-  final List<String> imageUrls;
+  final List<String> ReportImages;
 
   Report({
     required this.id,
@@ -27,7 +27,7 @@ class Report {
     this.resolvedAt,
     required this.upvotes,
     required this.downvotes,
-    required this.imageUrls,
+    required this.ReportImages,
     required this.status,
   });
 
@@ -45,7 +45,7 @@ class Report {
           map['resolvedAt'] != null ? DateTime.parse(map['resolvedAt']) : null,
       upvotes: map['upvotes'] ?? 0,
       downvotes: map['downvotes'] ?? 0,
-      imageUrls: List<String>.from(map['reportImagesUrls'] ?? []),
+      ReportImages: List<String>.from(map['reportImagesUrls'] ?? []),
       status: map['status'] ?? 0,
     );
   }
@@ -63,7 +63,7 @@ class Report {
       'resolvedAt': resolvedAt?.toUtc(),
       'upvotes': upvotes,
       'downvotes': downvotes,
-      'reportImagesUrls': imageUrls,
+      'reportImagesUrls': ReportImages,
       'status': status,
     };
   }

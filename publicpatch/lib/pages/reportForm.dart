@@ -37,6 +37,7 @@ class _ReportFormState extends State<ReportFormPage> {
   ReportService reportService = ReportService();
   CategoryService categoryService = CategoryService();
 
+  bool _isDisposed = false;
   List<Category> _categories = [];
   Category? _selectedCategory;
 
@@ -46,14 +47,29 @@ class _ReportFormState extends State<ReportFormPage> {
     _loadCategories();
   }
 
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
   Future<void> _loadCategories() async {
     try {
-      final categories = await categoryService.getCategories();
-      setState(() {
-        _categories = categories;
-      });
+      final categories = await CategoryService().getCategories();
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _categories = categories;
+          _selectedCategory = categories.isNotEmpty ? categories.first : null;
+        });
+      }
     } catch (e) {
       print('Error loading categories: $e');
+    }
+  }
+
+  void _updateSelectedCategory(Category category) {
+    if (!_isDisposed && mounted) {
+      setState(() => _selectedCategory = category);
     }
   }
 
@@ -270,9 +286,7 @@ class _ReportFormState extends State<ReportFormPage> {
                 initialValue: _selectedCategory ??
                     Category(id: 0, name: 'Select Category', description: ''),
                 items: _categories,
-                onChanged: (category) => setState(
-                  () => _selectedCategory = category,
-                ),
+                onChanged: _updateSelectedCategory,
                 itemBuilder: (category) => Row(
                   children: [
                     Icon(
@@ -305,7 +319,7 @@ class _ReportFormState extends State<ReportFormPage> {
                           location: _selectedLocation!,
                           description: _descriptionController.text,
                           categoryId: _selectedCategory!.id,
-                          imageUrls: _images.map((e) => e.path).toList(),
+                          imageUrls: _images,
                           userId: await UserSecureStorage.getUserId());
                       print('Report data: ${report.toMap()}');
                       var responseData =

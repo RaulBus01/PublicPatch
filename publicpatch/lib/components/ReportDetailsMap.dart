@@ -242,8 +242,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                     onTap: () => {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) =>
-                              GalleryView(imageUrls: widget.report.imageUrls),
+                          builder: (_) => GalleryView(
+                              imageUrls: widget.report.ReportImages),
                         ),
                       ),
                     },
@@ -252,8 +252,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width * 0.9,
                         height: 200,
-                        child:
-                            ImageCarousel(imageUrls: widget.report.imageUrls),
+                        child: ImageCarousel(
+                            imageUrls: widget.report.ReportImages),
                       ),
                     ),
                   ),

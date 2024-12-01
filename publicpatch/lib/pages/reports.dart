@@ -9,6 +9,7 @@ import 'package:publicpatch/components/GalleryView.dart';
 import 'package:publicpatch/service/report_Service.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
+import 'package:publicpatch/utils/time_utils.dart';
 
 import '../components/ImageCarousel.dart';
 
@@ -85,8 +86,8 @@ class _ReportsPageState extends State<ReportsPage> {
                 title: report.title,
                 location: report.location,
                 description: report.description,
-                imageUrls: report.imageUrls,
-                timeAgo: report.createdAt.toString(),
+                imageUrls: report.ReportImages,
+                timeAgo: report.createdAt.toLocal(),
                 onDelete: _handleDelete,
               ),
           ],
@@ -102,7 +103,7 @@ class ReportCard extends StatelessWidget {
   final LocationData location;
   final String description;
   final List<String> imageUrls;
-  final String timeAgo;
+  final DateTime timeAgo;
   final Function(int) onDelete;
 
   const ReportCard({
@@ -237,20 +238,18 @@ class ReportCard extends StatelessWidget {
 
                             if (context.mounted) {
                               onDelete(id);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Report deleted successfully'),
-                                  backgroundColor: Colors.green,
-                                ),
+                              Fluttertoast.showToast(
+                                msg: 'Report deleted successfully',
+                                backgroundColor: Colors.green,
+                                gravity: ToastGravity.TOP,
                               );
                             }
                           } catch (e) {
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Failed to delete report: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
+                              Fluttertoast.showToast(
+                                msg: 'Error deleting report',
+                                backgroundColor: Colors.red,
+                                gravity: ToastGravity.TOP,
                               );
                             }
                           }
@@ -286,22 +285,26 @@ class ReportCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => _showGallery(context),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  height: MediaQuery.of(context).size.width * 0.5,
-                  child: ImageCarousel(imageUrls: imageUrls),
-                ),
-              ),
-            ),
+            imageUrls.isNotEmpty
+                ? Center(
+                    child: GestureDetector(
+                      onTap: () => _showGallery(context),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.7,
+                          height: MediaQuery.of(context).size.width * 0.7,
+                          child: ImageCarousel(imageUrls: imageUrls),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
               child: SelectableText(
-                timeAgo,
+                TimeUtils.formatDateTime(timeAgo),
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ),

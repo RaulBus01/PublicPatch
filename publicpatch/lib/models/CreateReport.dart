@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:publicpatch/models/LocationData.dart';
 
 class CreateReport {
@@ -12,7 +14,7 @@ class CreateReport {
   final int upvotes = 0;
   final int downvotes = 0;
 
-  final List<String> imageUrls;
+  final List<File> imageUrls;
 
   CreateReport({
     required this.title,
@@ -34,7 +36,7 @@ class CreateReport {
       ),
       description: map['description'] ?? '',
       userId: map['userId'] ?? '',
-      imageUrls: List<String>.from(map['imageUrls'] ?? []),
+      imageUrls: List<File>.from(map['imageUrls'] ?? []),
     );
   }
 

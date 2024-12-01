@@ -107,7 +107,7 @@ namespace PublicPatch.Services
                     UpdatedAt = createReportModel.UpdatedAt,
                     Upvotes = createReportModel.Upvotes,
                     Downvotes = createReportModel.Downvotes,
-                    ReportImages = new List<string>()
+                    ReportImages = createReportModel.ReportImages
                 };
 
                 

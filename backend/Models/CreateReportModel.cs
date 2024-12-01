@@ -16,6 +16,6 @@ namespace PublicPatch.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public int Upvotes { get; set; }
         public int Downvotes { get; set; }
-        public IList<string> ReportImages { get; set; } = new List<string>();
+        public IList<string> ReportImages { get; set; }
     }
 }

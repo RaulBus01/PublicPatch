@@ -5,6 +5,7 @@ import 'package:publicpatch/components/GalleryView.dart';
 import 'package:publicpatch/service/report_Service.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:publicpatch/utils/time_utils.dart';
 
 class ReportPage extends StatefulWidget {
   final int reportId;
@@ -105,13 +106,13 @@ class _ReportPageState extends State<ReportPage> {
                   context,
                   MaterialPageRoute(
                       builder: (_) =>
-                          GalleryView(imageUrls: reportData!.imageUrls))),
+                          GalleryView(imageUrls: reportData!.ReportImages))),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: 200,
-                  child: ImageCarousel(imageUrls: reportData!.imageUrls),
+                  child: ImageCarousel(imageUrls: reportData!.ReportImages),
                 ),
               ),
             ),
@@ -164,7 +165,7 @@ class _ReportPageState extends State<ReportPage> {
                   style: const TextStyle(color: Colors.white54),
                 ),
                 Text(
-                  _formatDateTime(reportData!.createdAt),
+                  TimeUtils.formatDateTime(reportData!.createdAt),
                   style: const TextStyle(color: Colors.white54),
                 ),
               ],
@@ -185,19 +186,6 @@ class _ReportPageState extends State<ReportPage> {
         return 'Resolved';
       default:
         return 'Unknown';
-    }
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} minutes ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} hours ago';
-    } else {
-      return '${difference.inDays} days ago';
     }
   }
 }
