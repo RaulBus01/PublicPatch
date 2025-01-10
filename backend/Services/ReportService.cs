@@ -14,6 +14,8 @@ namespace PublicPatch.Services
     {
         Task<GetReportModel> GetReportById(int id);
         Task<IEnumerable<GetReportModel>> GetReportsByUser(int userId);
+
+        Task<IEnumerable<GetReportModel>> GetAllReports();
         Task CreateReport(CreateReportModel createReportModel);
         Task<IEnumerable<CategoryEntity>> GetCategories();
         Task<int> CreateCategory(CreateCategoryModel categoryModel);
@@ -70,6 +72,23 @@ namespace PublicPatch.Services
                 
                 var reports = await dbContext.Reports.Where(r => r.UserId == userId)
                     .Include(r => r.Location).ToListAsync();
+                return mapper.Map<IEnumerable<GetReportModel>>(reports);
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(GetReportsByUser)}: Error while getting the report", e);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<GetReportModel>> GetAllReports()
+        {
+            try
+            {
+                var scope = serviceScopeFactory.CreateScope();
+                using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+                var reports = await dbContext.Reports.Include(r => r.Location).OrderByDescending(r => r.CreatedAt).ToListAsync();
+
                 return mapper.Map<IEnumerable<GetReportModel>>(reports);
             }
             catch (Exception e)

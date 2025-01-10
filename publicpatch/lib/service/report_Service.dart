@@ -95,7 +95,7 @@ class ReportService {
     }
   }
 
-  Future<List<Report>> getReports(int userId) async {
+  Future<List<Report>> getUserReports(int userId) async {
     try {
       final response = await _dio.get(
         '/reports/GetUserReports/$userId',
@@ -113,6 +113,27 @@ class ReportService {
       throw Exception('Network error: ${e.message}');
     } catch (e) {
       print("Error: $e");
+      throw Exception('Network error: $e');
+    }
+  }
+
+  Future<List<Report>> getReports() async {
+    try {
+      final response = await _dio.get(
+        '/reports/GetAllReports',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      return List<Report>.from(
+          response.data.map((report) => Report.fromMap(report)));
+    } on DioException catch (e) {
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
       throw Exception('Network error: $e');
     }
   }

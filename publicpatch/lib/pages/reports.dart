@@ -22,7 +22,7 @@ class ReportsPage extends StatefulWidget {
 
 class _ReportsPageState extends State<ReportsPage> {
   List<Report> reports = [];
-
+  bool showUserReports = false;
   void _handleDelete(int id) {
     setState(() {
       reports.removeWhere((element) => element.id == id);
@@ -34,14 +34,16 @@ class _ReportsPageState extends State<ReportsPage> {
   @override
   void initState() {
     super.initState();
-    _loadReports();
+    _loadReports(showUserReports);
   }
 
-  Future<void> _loadReports() async {
+  Future<void> _loadReports(showUserReports) async {
     try {
       final reportService = ReportService();
       final userId = await UserSecureStorage.getUserId();
-      final fetchedReports = await reportService.getReports(userId);
+      final fetchedReports = showUserReports
+          ? await reportService.getUserReports(userId)
+          : await reportService.getReports();
 
       if (mounted) {
         // Check if widget is still in tree
@@ -63,8 +65,34 @@ class _ReportsPageState extends State<ReportsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        title: SelectableText('Your Reports'),
+        surfaceTintColor: const Color.fromARGB(0, 255, 255, 255),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ToggleButtons(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              isSelected: [!showUserReports, showUserReports],
+              onPressed: (index) {
+                setState(() {
+                  showUserReports = index == 1;
+                  _loadReports(showUserReports);
+                  isLoading = true;
+                });
+              },
+              borderRadius: BorderRadius.circular(8),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Text('All Reports'),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Text('Your Reports'),
+                ),
+              ],
+            ),
+          ],
+        ),
         backgroundColor: const Color(0XFF0D0E15),
         titleTextStyle: const TextStyle(fontSize: 18, color: Colors.white),
       ),

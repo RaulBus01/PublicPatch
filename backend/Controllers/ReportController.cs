@@ -54,6 +54,17 @@ namespace PublicPatch.Controllers
             return Ok(reports);
         }
 
+        [HttpGet("GetAllReports")]
+        public async Task<IActionResult> GetAllReports()
+        {
+            var reports = await reportService.GetAllReports();
+            if (reports.Count() == 0)
+            {
+                return NotFound();
+            }
+            return Ok(reports);
+        }
+
         [HttpPut("UpdateReport/{reportId}")]
         public async Task<IActionResult> UpdateReport(int userId)
         {
