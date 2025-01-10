@@ -1,4 +1,6 @@
-﻿using Amazon.S3.Model.Internal.MarshallTransformations;
+﻿using Amazon.S3;
+using Amazon.S3.Model.Internal.MarshallTransformations;
+using Amazon.S3.Transfer;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,25 +15,35 @@ namespace PublicPatch.Services
     {
         Task<GetReportModel> GetReportById(int id);
         Task<IEnumerable<GetReportModel>> GetReportsByUser(int userId);
+
+        Task<IEnumerable<GetReportModel>> GetAllReports();
         Task CreateReport(CreateReportModel createReportModel);
         Task<IEnumerable<CategoryEntity>> GetCategories();
         Task<int> CreateCategory(CreateCategoryModel categoryModel);
+
+
+        Task DeleteReport(int id);
+
         IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location); 
     }
     public class ReportService : IReportService
     {
         private readonly ILogger<IReportService> logger;
         private readonly IServiceScopeFactory serviceScopeFactory;
+        private readonly IAmazonS3 s3Client;
+        private readonly string bucketName = "publichpatch";
         private readonly IMapper mapper;
 
         public ReportService(
             ILogger<IReportService> logger,
             IServiceScopeFactory serviceScopeFactory,
+            IAmazonS3 s3Client,
             IMapper mapper)
         {
             this.logger = logger;
             this.serviceScopeFactory = serviceScopeFactory;
             this.mapper = mapper;
+            this.s3Client = s3Client;
         }
         public async Task<GetReportModel> GetReportById(int id)
         {
@@ -40,7 +52,8 @@ namespace PublicPatch.Services
                 var scope = serviceScopeFactory.CreateScope();
                 using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
                 return mapper.Map<GetReportModel>(
-                    await dbContext.Reports.FirstOrDefaultAsync(e => e.Id == id));
+                    await dbContext.Reports.Include(r => r.Location).FirstOrDefaultAsync(r => r.Id == id));
+
             }
             catch (Exception e)
             {
@@ -60,7 +73,26 @@ namespace PublicPatch.Services
                 {
                     throw new ArgumentException("User not found");
                 }
-                var reports = await dbContext.Reports.Where(r => r.UserId == userId).ToListAsync();
+                
+                var reports = await dbContext.Reports.Where(r => r.UserId == userId)
+                    .Include(r => r.Location).ToListAsync();
+                return mapper.Map<IEnumerable<GetReportModel>>(reports);
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(GetReportsByUser)}: Error while getting the report", e);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<GetReportModel>> GetAllReports()
+        {
+            try
+            {
+                var scope = serviceScopeFactory.CreateScope();
+                using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+                var reports = await dbContext.Reports.Include(r => r.Location).OrderByDescending(r => r.CreatedAt).ToListAsync();
+
                 return mapper.Map<IEnumerable<GetReportModel>>(reports);
             }
             catch (Exception e)
@@ -81,6 +113,10 @@ namespace PublicPatch.Services
                 {
                     throw new ArgumentException("User not found");
                 }
+                if(!await dbContext.Categories.AnyAsync(u => u.Id == createReportModel.CategoryId))
+                {
+                    throw new ArgumentException("Category not found");
+                }
 
                 var report = new ReportEntity()
                 {
@@ -92,11 +128,12 @@ namespace PublicPatch.Services
                     Status = createReportModel.Status,
                     CreatedAt = createReportModel.CreatedAt,
                     UpdatedAt = createReportModel.UpdatedAt,
-                    ResolvedAt = createReportModel.ResolvedAt,
                     Upvotes = createReportModel.Upvotes,
                     Downvotes = createReportModel.Downvotes,
-                    ReportImages = createReportModel.ReportImagesUrls.ToList()
+                    ReportImages = createReportModel.ReportImages
                 };
+
+                
 
                 dbContext.Reports.Add(report);
                 await dbContext.SaveChangesAsync();
@@ -104,6 +141,26 @@ namespace PublicPatch.Services
             catch (Exception e)
             {
                 logger.LogError($"{nameof(CreateReport)}: Error while creating the report", e);
+                throw;
+            }
+        }
+        public async Task DeleteReport(int id)
+        {
+            try
+            {
+                var scope = serviceScopeFactory.CreateScope();
+                using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+                var report = await dbContext.Reports.FirstOrDefaultAsync(r => r.Id == id);
+                if (report == null)
+                {
+                    throw new ArgumentException("Report not found");
+                }
+                dbContext.Reports.Remove(report);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(DeleteReport)}: Error while deleting the report", e);
                 throw;
             }
         }
@@ -124,7 +181,8 @@ namespace PublicPatch.Services
             var category = new CategoryEntity()
             {
                 Name = categoryModel.Name,
-                Description = categoryModel.Description
+                Description = categoryModel.Description,
+                Icon = categoryModel.Description
             };
 
             dbContext.Categories.Add(category);

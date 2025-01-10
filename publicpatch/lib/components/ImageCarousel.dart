@@ -23,7 +23,7 @@ class _ImageCarouselState extends State<ImageCarousel> {
             setState(() => currentPage = index);
           },
           itemBuilder: (context, index) {
-            return Image.asset(
+            return Image.network(
               widget.imageUrls[index],
               fit: BoxFit.cover,
             );

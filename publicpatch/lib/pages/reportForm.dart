@@ -1,12 +1,26 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:publicpatch/components/CustomDropDown.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
 
 import 'package:publicpatch/components/CustomTextArea.dart';
+import 'package:publicpatch/models/Category.dart';
+import 'package:publicpatch/models/CreateReport.dart';
+import 'package:publicpatch/models/LocationData.dart';
+import 'package:publicpatch/models/Report.dart';
+import 'package:publicpatch/pages/home.dart';
+import 'package:publicpatch/pages/report.dart';
+import 'package:publicpatch/pages/reports.dart';
+import 'package:publicpatch/service/category_Service.dart';
+import 'package:publicpatch/service/report_Service.dart';
+import 'package:publicpatch/service/user_Service.dart';
+import 'package:publicpatch/service/user_secure.dart';
+import 'package:publicpatch/utils/create_route.dart';
+import 'package:publicpatch/utils/getIcon.dart';
 
 class ReportFormPage extends StatefulWidget {
   const ReportFormPage({super.key});
@@ -19,20 +33,56 @@ class _ReportFormState extends State<ReportFormPage> {
   final ImagePicker _picker = ImagePicker();
   // final FilePicker _filePicker = await FilePicker.platform.pickFiles();
   final List<File> _images = [];
+  LocationData? _selectedLocation;
+  ReportService reportService = ReportService();
+  CategoryService categoryService = CategoryService();
+
+  bool _isDisposed = false;
+  List<Category> _categories = [];
+  Category? _selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await CategoryService().getCategories();
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _categories = categories;
+          _selectedCategory = categories.isNotEmpty ? categories.first : null;
+        });
+      }
+    } catch (e) {
+      print('Error loading categories: $e');
+    }
+  }
+
+  void _updateSelectedCategory(Category category) {
+    if (!_isDisposed && mounted) {
+      setState(() => _selectedCategory = category);
+    }
+  }
 
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _categoryController = TextEditingController();
-  final _imageController = TextEditingController();
 
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null) {
         setState(() {
-          debugPrint(_images.length.toString());
           if (_images.length < 6) {
             _images.add(File(image.path));
             Fluttertoast.showToast(
@@ -159,6 +209,27 @@ class _ReportFormState extends State<ReportFormPage> {
     );
   }
 
+  bool _validateForm() {
+    if (!_formKey.currentState!.validate()) return false;
+
+    if (_titleController.text.isEmpty) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: 'Title cannot be empty',
+          gravity: ToastGravity.TOP);
+      return false;
+    }
+    if (_selectedLocation == null) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: 'Please select a location',
+          gravity: ToastGravity.TOP);
+      return false;
+    }
+    //TODO: Add validation for category
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -198,25 +269,82 @@ class _ReportFormState extends State<ReportFormPage> {
                   preFixIcon: Icons.title),
               Padding(padding: EdgeInsets.only(top: 20)),
               CustomFormInput(
-                  controller: _locationController,
-                  title: 'Location',
-                  preFixIcon: Icons.location_on),
+                controller: _locationController,
+                title: 'Location',
+                preFixIcon: Icons.location_on,
+                suffixIcon: Icons.my_location_outlined,
+                onLocationSelected: (dynamic location) {
+                  if (location is LocationData) {
+                    setState(() {
+                      _selectedLocation = location;
+                    });
+                  }
+                },
+              ),
               Padding(padding: EdgeInsets.only(top: 20)),
-              CustomDropDown<String>(
-                initialValue: 'Select Category',
-                items: ['Category 1', 'Category 2', 'Category 3'],
+              CustomDropDown<Category>(
+                initialValue: _selectedCategory ??
+                    Category(id: 0, name: 'Select Category', description: ''),
+                items: _categories,
+                onChanged: _updateSelectedCategory,
+                itemBuilder: (category) => Row(
+                  children: [
+                    Icon(
+                      getIconFromString(category.icon ?? ''),
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      category.name,
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                  ],
+                ),
               ),
               Padding(padding: EdgeInsets.only(top: 20)),
               _buildImageCard(),
               Padding(padding: EdgeInsets.only(top: 15)),
               CustomTextArea(
-                  title: 'Description', preFixIcon: Icons.description),
+                  controller: _descriptionController,
+                  title: 'Description',
+                  preFixIcon: Icons.description),
               Padding(padding: EdgeInsets.only(top: 40)),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  if (_validateForm()) {
+                    try {
+                      final report = CreateReport(
+                          title: _titleController.text,
+                          location: _selectedLocation!,
+                          description: _descriptionController.text,
+                          categoryId: _selectedCategory!.id,
+                          imageUrls: _images,
+                          userId: await UserSecureStorage.getUserId());
+                      print('Report data: ${report.toMap()}');
+                      var responseData =
+                          await ReportService().createReport(report);
+                      if (responseData == null) {
+                        throw Exception('Failed to create report');
+                      }
+
+                      Fluttertoast.showToast(
+                          msg: 'Report created successfully',
+                          gravity: ToastGravity.TOP);
+
+                      Navigator.pushReplacement(
+                          context, CreateRoute.createRoute(HomePage()));
+                    } catch (e) {
+                      Fluttertoast.showToast(
+                          backgroundColor: Colors.red,
+                          msg: e.toString(),
+                          gravity: ToastGravity.TOP);
+                    }
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
-                  backgroundColor: Colors.transparent,
+                  backgroundColor: Colors.blue,
                   shadowColor: Colors.transparent,
                 ),
                 child: Text(

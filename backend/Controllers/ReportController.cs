@@ -6,7 +6,7 @@ using PublicPatch.Services;
 namespace PublicPatch.Controllers
 {
     [ApiController]
-    [Route("api/[controller]/reports")]
+    [Route("reports")]
     public class ReportController : ControllerBase
     {
         private readonly ILogger<WeatherForecastController> _logger;
@@ -22,7 +22,7 @@ namespace PublicPatch.Controllers
             this.reportService = reportService;
         }
 
-        [HttpPost("CreteReport")]
+        [HttpPost("CreateReport")]
         public async Task<IActionResult>CreateReport([FromBody] CreateReportModel report)
         {
             await reportService.CreateReport(report);
@@ -30,7 +30,7 @@ namespace PublicPatch.Controllers
             return Ok(report);
         }
 
-        [HttpGet("GetReport{id}")]
+        [HttpGet("GetReport/{id}")]
         public async Task<IActionResult> GetReport(int id)
         {
             var report = await reportService.GetReportById(id);
@@ -42,7 +42,7 @@ namespace PublicPatch.Controllers
             return Ok(report);
         }
 
-        [HttpGet("GetUserReports{userId}")]
+        [HttpGet("GetUserReports/{userId}")]
         public async Task<IActionResult> GetReportByUser(int userId)
         {
             var reports = await reportService.GetReportsByUser(userId);
@@ -54,7 +54,18 @@ namespace PublicPatch.Controllers
             return Ok(reports);
         }
 
-        [HttpPut("UpdateReport{reportId}")]
+        [HttpGet("GetAllReports")]
+        public async Task<IActionResult> GetAllReports()
+        {
+            var reports = await reportService.GetAllReports();
+            if (reports.Count() == 0)
+            {
+                return NotFound();
+            }
+            return Ok(reports);
+        }
+
+        [HttpPut("UpdateReport/{reportId}")]
         public async Task<IActionResult> UpdateReport(int userId)
         {
             var reports = await reportService.GetReportsByUser(userId);
@@ -66,6 +77,14 @@ namespace PublicPatch.Controllers
             return Ok(reports);
         }
 
+
+        [HttpDelete("DeleteReport/{reportId}")]
+        public async Task<IActionResult> DeleteReport(int reportId)
+        {
+            await reportService.DeleteReport(reportId);
+            return Ok("Report deleted");
+
+
         [HttpGet("GetReportsByZone{location}")]
         public async Task<IActionResult> GetReportsByZone(GetReportsLocation location )
         {
@@ -76,6 +95,7 @@ namespace PublicPatch.Controllers
             }
 
             return Ok(reports);
+
         }
     }
 }

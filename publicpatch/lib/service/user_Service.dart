@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
-import 'package:publicpatch/entity/User.dart';
-import 'package:publicpatch/entity/UserLogin.dart';
+import 'package:publicpatch/models/User.dart';
+import 'package:publicpatch/models/UserLogin.dart';
 
 class UserService {
   late final Dio _dio;
@@ -30,7 +30,7 @@ class UserService {
   Future<String> createUser(User user) async {
     try {
       final response = await _dio.post(
-        '/users/register',
+        '/users/Register',
         data: {
           'username': user.username,
           'email': user.email,
@@ -58,7 +58,7 @@ class UserService {
   Future<String> login(UserLogin user) async {
     try {
       final response = await _dio.post(
-        '/users/login',
+        '/users/Login',
         data: {
           'email': user.email,
           'password': user.password,

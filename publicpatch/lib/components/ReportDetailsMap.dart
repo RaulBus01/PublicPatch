@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:publicpatch/components/ImageCarousel.dart';
-import 'package:publicpatch/entity/Report.dart';
+import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
@@ -42,8 +42,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
   Future<void> _getAddress() async {
     try {
       final placemarks = await placemarkFromCoordinates(
-        widget.report.latitude,
-        widget.report.longitude,
+        widget.report.location.latitude,
+        widget.report.location.longitude,
       );
 
       if (placemarks.isNotEmpty) {
@@ -110,8 +110,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                       onPressed: () {
                         MapUtils.shareLocationLink(
                             context,
-                            widget.report.latitude,
-                            widget.report.longitude,
+                            widget.report.location.latitude,
+                            widget.report.location.longitude,
                             address ?? '',
                             widget.report.title,
                             widget.report.description);
@@ -201,7 +201,7 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                                   children: [
                                     Text(
                                       address ??
-                                          'Latitude : ${widget.report.latitude}, Longitude : ${widget.report.longitude}',
+                                          'Latitude : ${widget.report.location.latitude}, Longitude : ${widget.report.location.longitude}',
                                       style:
                                           const TextStyle(color: Colors.white),
                                       overflow: TextOverflow.ellipsis,
@@ -220,8 +220,9 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                                       onPressed: () async {
                                         final success =
                                             await MapUtils.openInMapApp(
-                                                widget.report.latitude,
-                                                widget.report.longitude);
+                                                widget.report.location.latitude,
+                                                widget
+                                                    .report.location.longitude);
                                         print(
                                             'Open in map app success: $success');
                                       },
@@ -241,8 +242,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                     onTap: () => {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) =>
-                              GalleryView(imageUrls: widget.report.imageUrls),
+                          builder: (_) => GalleryView(
+                              imageUrls: widget.report.ReportImages),
                         ),
                       ),
                     },
@@ -251,8 +252,8 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width * 0.9,
                         height: 200,
-                        child:
-                            ImageCarousel(imageUrls: widget.report.imageUrls),
+                        child: ImageCarousel(
+                            imageUrls: widget.report.ReportImages),
                       ),
                     ),
                   ),

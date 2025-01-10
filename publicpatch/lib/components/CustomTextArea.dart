@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 class CustomTextArea extends StatefulWidget {
   final String title;
   final IconData? preFixIcon;
-  const CustomTextArea({super.key, required this.title, this.preFixIcon});
+  final TextEditingController controller;
+  const CustomTextArea(
+      {super.key,
+      required this.title,
+      required this.controller,
+      this.preFixIcon});
 
   @override
   State<CustomTextArea> createState() => _CustomTextAreaState();
@@ -20,6 +25,7 @@ class _CustomTextAreaState extends State<CustomTextArea> {
     return SizedBox(
       width: 251,
       child: TextField(
+        controller: widget.controller,
         minLines: 1,
         maxLines: 6,
         selectionControls: MaterialTextSelectionControls(),

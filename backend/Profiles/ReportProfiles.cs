@@ -19,6 +19,7 @@ namespace PublicPatch.Profiles
         {
             return new GetReportModel
             {
+                Id =  source.Id,
                 Title = source.Title,
                 Location = source.Location,
                 CategoryId = source.CategoryId,
@@ -40,6 +41,7 @@ namespace PublicPatch.Profiles
         {
             return source.Select(report => new GetReportModel
             {
+                Id = report.Id,
                 Title = report.Title,
                 Location = report.Location,
                 CategoryId = report.CategoryId,

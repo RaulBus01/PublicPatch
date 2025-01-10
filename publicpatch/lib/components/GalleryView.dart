@@ -17,7 +17,7 @@ class GalleryView extends StatelessWidget {
               return InteractiveViewer(
                 minScale: 0.1,
                 maxScale: 5.0,
-                child: Image.asset(
+                child: Image.network(
                   imageUrls[index],
                   fit: BoxFit.contain,
                 ),

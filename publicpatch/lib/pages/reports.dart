@@ -1,24 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BottomPanel.dart';
-import 'package:publicpatch/entity/Report.dart';
-import 'package:publicpatch/mocks/MockReports.dart';
+import 'package:publicpatch/models/LocationData.dart';
+import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/reportsMap.dart';
 import 'package:publicpatch/components/GalleryView.dart';
+import 'package:publicpatch/service/report_Service.dart';
+import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
+import 'package:publicpatch/utils/time_utils.dart';
 
 import '../components/ImageCarousel.dart';
 
-class ReportsPage extends StatelessWidget {
+class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
 
   @override
+  _ReportsPageState createState() => _ReportsPageState();
+}
+
+class _ReportsPageState extends State<ReportsPage> {
+  List<Report> reports = [];
+  bool showUserReports = false;
+  void _handleDelete(int id) {
+    setState(() {
+      reports.removeWhere((element) => element.id == id);
+    });
+  }
+
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReports(showUserReports);
+  }
+
+  Future<void> _loadReports(showUserReports) async {
+    try {
+      final reportService = ReportService();
+      final userId = await UserSecureStorage.getUserId();
+      final fetchedReports = showUserReports
+          ? await reportService.getUserReports(userId)
+          : await reportService.getReports();
+
+      if (mounted) {
+        // Check if widget is still in tree
+        setState(() {
+          reports = fetchedReports;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    late List<Report> reports = getMockReports();
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        title: SelectableText('Your Reports'),
+        surfaceTintColor: const Color.fromARGB(0, 255, 255, 255),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ToggleButtons(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              isSelected: [!showUserReports, showUserReports],
+              onPressed: (index) {
+                setState(() {
+                  showUserReports = index == 1;
+                  _loadReports(showUserReports);
+                  isLoading = true;
+                });
+              },
+              borderRadius: BorderRadius.circular(8),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Text('All Reports'),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Text('Your Reports'),
+                ),
+              ],
+            ),
+          ],
+        ),
         backgroundColor: const Color(0XFF0D0E15),
         titleTextStyle: const TextStyle(fontSize: 18, color: Colors.white),
       ),
@@ -36,13 +110,13 @@ class ReportsPage extends StatelessWidget {
           children: [
             for (var report in reports)
               ReportCard(
+                id: report.id,
                 title: report.title,
-                location: '${report.longitude}, ${report.latitude}',
+                location: report.location,
                 description: report.description,
-                imageUrls: report.imageUrls,
-                timeAgo: report.createdAt.toString(),
-                latitude: report.latitude,
-                longitude: report.longitude,
+                imageUrls: report.ReportImages,
+                timeAgo: report.createdAt.toLocal(),
+                onDelete: _handleDelete,
               ),
           ],
         ),
@@ -52,22 +126,22 @@ class ReportsPage extends StatelessWidget {
 }
 
 class ReportCard extends StatelessWidget {
+  final int id;
   final String title;
-  final String location;
+  final LocationData location;
   final String description;
   final List<String> imageUrls;
-  final String timeAgo;
-  final double latitude;
-  final double longitude;
+  final DateTime timeAgo;
+  final Function(int) onDelete;
 
   const ReportCard({
+    required this.id,
     required this.title,
     required this.location,
     required this.description,
     required this.imageUrls,
     required this.timeAgo,
-    required this.latitude,
-    required this.longitude,
+    required this.onDelete,
     super.key,
   });
 
@@ -97,9 +171,13 @@ class ReportCard extends StatelessWidget {
                     const Icon(Ionicons.location_outline,
                         color: Colors.white54, size: 24),
                     const SizedBox(width: 4),
-                    SelectableText(
-                      location,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.6,
+                      child: SelectableText(
+                        location.address,
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 14),
+                      ),
                     ),
                   ],
                 ),
@@ -117,8 +195,8 @@ class ReportCard extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) => ReportsMapPage(
-                              latitude: latitude,
-                              longitude: longitude,
+                              latitude: location.latitude,
+                              longitude: location.longitude,
                             ),
                           ),
                         );
@@ -132,9 +210,9 @@ class ReportCard extends StatelessWidget {
                       onTap: () {
                         MapUtils.shareLocationLink(
                           context,
-                          latitude,
-                          longitude,
-                          location,
+                          location.latitude,
+                          location.longitude,
+                          location.toString(),
                           title,
                           description,
                         );
@@ -155,12 +233,58 @@ class ReportCard extends StatelessWidget {
                       leading: const Icon(Icons.delete, color: Colors.white54),
                       title: const Text('Delete Report',
                           style: TextStyle(color: Colors.white)),
-                      onTap: () {
+                      onTap: () async {
                         Navigator.pop(context);
-                        print('Delete Report');
+                        final bool? confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              backgroundColor: const Color(0XFF1B1D29),
+                              title: const Text('Confirm Deletion',
+                                  style: TextStyle(color: Colors.white)),
+                              content: const Text(
+                                  style: TextStyle(color: Colors.white),
+                                  'Are you sure you want to delete this report?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('CANCEL'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('DELETE'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (confirm == true) {
+                          try {
+                            await ReportService().deleteReport(id);
+
+                            if (context.mounted) {
+                              onDelete(id);
+                              Fluttertoast.showToast(
+                                msg: 'Report deleted successfully',
+                                backgroundColor: Colors.green,
+                                gravity: ToastGravity.TOP,
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              Fluttertoast.showToast(
+                                msg: 'Error deleting report',
+                                backgroundColor: Colors.red,
+                                gravity: ToastGravity.TOP,
+                              );
+                            }
+                          }
+                        }
                       },
                     ),
-                  ], // Menu options passed to the bottom panel
+                  ],
                 ),
               ],
             ),
@@ -189,22 +313,26 @@ class ReportCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => _showGallery(context),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  height: MediaQuery.of(context).size.width * 0.5,
-                  child: ImageCarousel(imageUrls: imageUrls),
-                ),
-              ),
-            ),
+            imageUrls.isNotEmpty
+                ? Center(
+                    child: GestureDetector(
+                      onTap: () => _showGallery(context),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.7,
+                          height: MediaQuery.of(context).size.width * 0.7,
+                          child: ImageCarousel(imageUrls: imageUrls),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
               child: SelectableText(
-                timeAgo,
+                TimeUtils.formatDateTime(timeAgo),
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ),

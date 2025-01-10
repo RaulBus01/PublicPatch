@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:publicpatch/components/BackgroundImage.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
-import 'package:publicpatch/entity/User.dart';
+import 'package:publicpatch/models/User.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/login.dart';
 import 'package:publicpatch/service/user_Service.dart';
@@ -49,7 +49,7 @@ class _SignUpPageState extends State<SignUpPage> {
           await UserSecureStorage.saveToken(result);
           Fluttertoast.showToast(
               msg: 'Account created successfully', gravity: ToastGravity.TOP);
-        
+
           Navigator.pushReplacement(context, _createRoute('home'));
         } else {
           Fluttertoast.showToast(
@@ -58,9 +58,10 @@ class _SignUpPageState extends State<SignUpPage> {
               gravity: ToastGravity.TOP);
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        Fluttertoast.showToast(
+            backgroundColor: Colors.red,
+            msg: e.toString(),
+            gravity: ToastGravity.TOP);
       } finally {
         setState(() => _isLoading = false);
       }

@@ -12,8 +12,8 @@ using PublicPatch.Data;
 namespace PublicPatch.Migrations
 {
     [DbContext(typeof(PPContext))]
-    [Migration("20241118165903_CreateReportEntity")]
-    partial class CreateReportEntity
+    [Migration("20241119095025_ChangeLocationToDouble")]
+    partial class ChangeLocationToDouble
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,27 @@ namespace PublicPatch.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("PublicPatch.Aggregates.CategoryEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
+                });
 
             modelBuilder.Entity("PublicPatch.Aggregates.LocationEntity", b =>
                 {
@@ -38,10 +59,10 @@ namespace PublicPatch.Migrations
                         .HasColumnType("text");
 
                     b.Property<double>("Latitude")
-                        .HasColumnType("numeric");
+                        .HasColumnType("double precision");
 
                     b.Property<double>("Longitude")
-                        .HasColumnType("numeric");
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -56,7 +77,7 @@ namespace PublicPatch.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Category")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
@@ -80,6 +101,9 @@ namespace PublicPatch.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StatusId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
