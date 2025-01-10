@@ -86,7 +86,7 @@ namespace PublicPatch.Controllers
         }
 
             [HttpGet("GetReportsByZone")]
-            public async Task<IActionResult> GetReportsByZone(GetReportsLocation location)
+            public async Task<IActionResult> GetReportsByZone([FromQuery]GetReportsLocation location)
             {
                 var reports = reportService.GetReportsByZone(location);
                 if (reports.Count() == 0)
