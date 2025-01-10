@@ -194,7 +194,7 @@ namespace PublicPatch.Services
         {
             var scope = serviceScopeFactory.CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-            var reports = dbContext.Reports.Where(r => r.Location.Latitude >= location.Latitude - location.Radius && r.Location.Latitude <= location.Latitude + location.Radius && r.Location.Longitude >= location.Longitude - location.Radius && r.Location.Longitude <= location.Longitude + location.Radius);
+            var reports = dbContext.Reports.Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius && r.Location.Latitude <= (double)location.Latitude + location.Radius && r.Location.Longitude >= (double)location.Longitude - location.Radius && r.Location.Longitude <= (double)location.Longitude + location.Radius);
 
             return mapper.Map<IEnumerable<GetReportModel>>(reports);
         }
