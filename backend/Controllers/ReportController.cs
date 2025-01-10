@@ -83,19 +83,20 @@ namespace PublicPatch.Controllers
         {
             await reportService.DeleteReport(reportId);
             return Ok("Report deleted");
-
-
-        [HttpGet("GetReportsByZone{location}")]
-        public async Task<IActionResult> GetReportsByZone(GetReportsLocation location )
-        {
-            var reports = reportService.GetReportsByZone(location);
-            if (reports.Count() == 0)
-            {
-                return NotFound();
-            }
-
-            return Ok(reports);
-
         }
+
+            [HttpGet("GetReportsByZone")]
+            public async Task<IActionResult> GetReportsByZone(GetReportsLocation location)
+            {
+                var reports = reportService.GetReportsByZone(location);
+                if (reports.Count() == 0)
+                {
+                    return NotFound();
+                }
+
+                return Ok(reports);
+
+            }
+        
     }
 }
