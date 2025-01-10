@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using PublicPatch.Aggregates;
 using PublicPatch.Data;
 using PublicPatch.Models;
+using System.Collections.Generic;
 
 namespace PublicPatch.Services
 {
@@ -20,7 +21,10 @@ namespace PublicPatch.Services
         Task<IEnumerable<CategoryEntity>> GetCategories();
         Task<int> CreateCategory(CreateCategoryModel categoryModel);
 
+
         Task DeleteReport(int id);
+
+        IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location); 
     }
     public class ReportService : IReportService
     {
@@ -184,6 +188,15 @@ namespace PublicPatch.Services
             dbContext.Categories.Add(category);
             await dbContext.SaveChangesAsync();
             return category.Id;
+        }
+
+        public IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location)
+        {
+            var scope = serviceScopeFactory.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+            var reports = dbContext.Reports.Where(r => r.Location.Latitude >= location.Latitude - location.Radius && r.Location.Latitude <= location.Latitude + location.Radius && r.Location.Longitude >= location.Longitude - location.Radius && r.Location.Longitude <= location.Longitude + location.Radius);
+
+            return mapper.Map<IEnumerable<GetReportModel>>(reports);
         }
     }
 }
