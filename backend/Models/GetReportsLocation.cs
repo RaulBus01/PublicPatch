@@ -4,6 +4,6 @@
     {
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public int Radius { get; set; }
+        public double Radius { get; set; }
     }
 }

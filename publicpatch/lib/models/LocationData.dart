@@ -2,7 +2,7 @@ class LocationData {
   final double latitude;
   final double longitude;
   final String address;
-  final int? radius;
+  final double? radius;
 
   LocationData({
     required this.latitude,
