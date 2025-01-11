@@ -1,12 +1,14 @@
-import 'dart:collection';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
-import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
-import 'package:flutter/rendering.dart';
-import 'package:ionicons/ionicons.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:publicpatch/models/LocationData.dart';
+
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/components/ReportDetailsMap.dart';
+import 'package:publicpatch/service/report_Service.dart';
 
 class ReportsMapPage extends StatefulWidget {
   final double? longitude, latitude;
@@ -18,52 +20,33 @@ class ReportsMapPage extends StatefulWidget {
 }
 
 class _ReportsMapPageState extends State<ReportsMapPage> {
-  late final MapController controller;
-  late bool _isSearching = false;
-  final TextEditingController _searchController = TextEditingController();
+  static const int _minFetchInterval = 5; // seconds
+  static const double _minFetchDistance = 100; // meters
+  static const Duration _debounceDelay = Duration(milliseconds: 500);
 
-  bool _mapIsReady = false;
+  final Map<MarkerId, Marker> _markerMap = {};
+  final ReportService _reportService = ReportService();
+
+  late GoogleMapController _mapController;
+  late ClusterManager _clusterManager;
+
+  bool _isLoading = false;
+  bool _locationPermissionGranted = false;
+  DateTime? _lastRequestTime;
+
+  LatLng? _lastFetchedCenter;
+  int? _lastFetchedRadius;
 
   @override
   void initState() {
     super.initState();
-    controller = MapController(
-      initPosition: GeoPoint(
-        latitude: widget.latitude ?? 45.86,
-        longitude: widget.longitude ?? 21.2,
-      ),
-    );
+    _requestLocationPermission();
   }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
+  Future<void> _requestLocationPermission() async {
+    final status = await Permission.location.request();
 
-  Future<void> _addMockMarkers() async {
-    if (!_mapIsReady) return;
-
-    try {
-      // for (final report in mockReports) {
-      //   final marker = await controller.addMarker(
-      //     GeoPoint(
-      //         latitude: report.location.latitude,
-      //         longitude: report.location.longitude),
-      //     markerIcon: MarkerIcon(
-      //       icon: Icon(
-      //         Icons.location_on,
-      //         color: Colors.red,
-      //         size: 48,
-      //       ),
-      //     ),
-      //   );
-      // }
-
-      // Set up marker click listener
-    } catch (e) {
-      print('Error adding markers: $e');
-    }
+    setState(() => _locationPermissionGranted = status.isGranted);
   }
 
   void _showReportDetails(Report report) {
@@ -74,11 +57,90 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.75,
       ),
-      builder: (BuildContext context) {
-        return ReportDetailsMap(report: report);
-      },
+      builder: (context) => ReportDetailsMap(report: report),
     );
   }
+
+  bool _shouldFetchData(LatLng newCenter) {
+    if (_isLoading) return false;
+
+    final now = DateTime.now();
+    if (_lastRequestTime != null &&
+        now.difference(_lastRequestTime!) <
+            Duration(seconds: _minFetchInterval)) {
+      return false;
+    }
+
+    if (_lastFetchedCenter != null) {
+      final distance = Geolocator.distanceBetween(
+        _lastFetchedCenter!.latitude,
+        _lastFetchedCenter!.longitude,
+        newCenter.latitude,
+        newCenter.longitude,
+      );
+      if (distance < _minFetchDistance) return false;
+    }
+
+    return true;
+  }
+
+  Future<void> _fetchAndUpdateMarkers(LatLng center, int radius) async {
+    if (!mounted) return;
+
+    setState(() => _isLoading = true);
+    _lastRequestTime = DateTime.now();
+
+    try {
+      final reports = await _reportService.getReportsByZone(
+        LocationData(
+            latitude: center.latitude,
+            longitude: center.longitude,
+            address: '',
+            radius: radius),
+      );
+
+      debugPrint('Fetched ${reports.length} reports');
+
+      if (!mounted) return;
+
+      _updateMarkers(reports);
+      _lastFetchedCenter = center;
+      _lastFetchedRadius = radius;
+    } catch (e) {
+      debugPrint('Error fetching reports: $e');
+      if (mounted) {
+        setState(() => _markerMap.clear());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _updateMarkers(List<Report> reports) {
+    if (!mounted) return;
+
+    final updatedMarkers = {
+      for (final report in reports)
+        MarkerId(report.id.toString()): _createMarker(report)
+    };
+
+    setState(() => _markerMap
+      ..clear()
+      ..addAll(updatedMarkers));
+  }
+
+  Marker _createMarker(Report report) => Marker(
+        markerId: MarkerId(report.id.toString()),
+        position: LatLng(report.location.latitude, report.location.longitude),
+        infoWindow: InfoWindow(
+          title: report.title,
+          snippet: report.description,
+          onTap: () => _showReportDetails(report),
+        ),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -90,184 +152,61 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
       ),
       body: Stack(
         children: [
-          OSMFlutter(
-            controller: controller,
-            onGeoPointClicked: (geoPoint) {
-              // final report = mockReports.firstWhere(
-              //   (report) =>
-              //       report.location.latitude == geoPoint.latitude &&
-              //       report.location.longitude == geoPoint.longitude,
-              // );
-              // _showReportDetails(report);
-            },
-            onMapIsReady: (isReady) {
-              if (isReady) {
-                setState(() {
-                  _mapIsReady = true;
-                });
-                _addMockMarkers();
-              }
-            },
-            mapIsLoading: const Center(
-              child: CircularProgressIndicator(),
+          GoogleMap(
+            mapType: MapType.normal,
+            markers: Set<Marker>.from(_markerMap.values),
+            initialCameraPosition: CameraPosition(
+              target:
+                  LatLng(widget.latitude ?? 45.76, widget.longitude ?? 21.0),
+              zoom: 10,
             ),
-            osmOption: OSMOption(
-              zoomOption: ZoomOption(
-                initZoom: 8,
-                minZoomLevel: 3,
-                maxZoomLevel: 19,
-                stepZoom: 1.0,
-              ),
-              userLocationMarker: UserLocationMaker(
-                personMarker: MarkerIcon(
-                  icon: Icon(
-                    Icons.location_history_rounded,
-                    color: Colors.red,
-                    size: 108,
-                  ),
-                ),
-                directionArrowMarker: MarkerIcon(
-                  icon: Icon(
-                    Icons.double_arrow,
-                    size: 48,
-                  ),
-                ),
-              ),
-              roadConfiguration: RoadOption(
-                roadColor: Colors.yellowAccent,
-              ),
-              showZoomController: true,
-              enableRotationByGesture: true,
-            ),
+            myLocationEnabled: _locationPermissionGranted,
+            myLocationButtonEnabled: _locationPermissionGranted,
+            onMapCreated: _onMapCreated,
+            onCameraIdle: _onCameraIdle,
           ),
-          if (_isSearching)
-            Positioned(
-              top: 16,
-              left: 16,
-              right: 16,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: TextField(
-                  controller: _searchController,
-                  onTapOutside: (PointerDownEvent event) {
-                    setState(() {
-                      _isSearching = false;
-                    });
-                  },
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Search',
-                    hintStyle: const TextStyle(color: Colors.white),
-                    prefixIcon: const Icon(
-                      Ionicons.search_outline,
-                      color: Colors.white,
-                    ),
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xFF1A1C2A),
-                    suffixIcon: IconButton(
-                      icon: const Icon(
-                        Ionicons.close_outline,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isSearching = false;
-                        });
-                      },
-                    ),
-                  ),
-                  autofocus: true,
-                ),
+          if (_isLoading)
+            Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
               ),
             ),
-          ButtonLayer(),
         ],
       ),
     );
   }
 
-  Positioned ButtonLayer() {
-    return Positioned(
-      top: _isSearching ? 80 : 16,
-      left: 16,
-      right: 16,
-      bottom: 16,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            alignment: Alignment.topLeft,
-            child: !_isSearching
-                ? ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      surfaceTintColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      backgroundColor: const Color(0xFF1A1C2A),
-                      padding: const EdgeInsets.all(8),
-                      minimumSize: Size(30, 30),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isSearching = !_isSearching;
-                      });
-                    },
-                    child: const Icon(
-                      Ionicons.search_outline,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  )
-                : const SizedBox(),
-          ),
-          Container(
-            alignment: Alignment.bottomRight,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    surfaceTintColor: Colors.transparent,
-                    shape: CircleBorder(
-                      side: BorderSide(
-                        color: Colors.white,
-                        width: 1,
-                      ),
-                    ),
-                    backgroundColor: const Color(0xFF1A1C2A),
-                    padding: const EdgeInsets.all(8),
-                    minimumSize: Size(50, 50),
-                  ),
-                  onPressed: () async {
-                    try {
-                      await controller.currentLocation();
-                      await controller.enableTracking(enableStopFollow: true);
-                    } catch (e) {
-                      // print(e);
-                    }
-                  },
-                  child: const Icon(
-                    Ionicons.locate_outline,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        ],
-      ),
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+    _initializeMapData();
+  }
+
+  Future<void> _initializeMapData() async {
+    final initialCenter = LatLng(
+      widget.latitude ?? 45.76,
+      widget.longitude ?? 21.0,
     );
+    await _fetchAndUpdateMarkers(initialCenter, 100);
+  }
+
+  Future<void> _onCameraIdle() async {
+    final bounds = await _mapController.getVisibleRegion();
+    final center = LatLng(
+      double.parse(((bounds.northeast.latitude + bounds.southwest.latitude) / 2)
+          .toStringAsFixed(2)),
+      double.parse(
+          ((bounds.northeast.longitude + bounds.southwest.longitude) / 2)
+              .toStringAsFixed(2)),
+    );
+    final radius = 100;
+    if (_shouldFetchData(center)) {
+      _fetchAndUpdateMarkers(center, radius);
+    }
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
   }
 }

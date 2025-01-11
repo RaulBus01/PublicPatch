@@ -24,7 +24,7 @@ namespace PublicPatch.Services
 
         Task DeleteReport(int id);
 
-        IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location); 
+        IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location);
     }
     public class ReportService : IReportService
     {
@@ -73,7 +73,7 @@ namespace PublicPatch.Services
                 {
                     throw new ArgumentException("User not found");
                 }
-                
+
                 var reports = await dbContext.Reports.Where(r => r.UserId == userId)
                     .Include(r => r.Location).ToListAsync();
                 return mapper.Map<IEnumerable<GetReportModel>>(reports);
@@ -113,7 +113,7 @@ namespace PublicPatch.Services
                 {
                     throw new ArgumentException("User not found");
                 }
-                if(!await dbContext.Categories.AnyAsync(u => u.Id == createReportModel.CategoryId))
+                if (!await dbContext.Categories.AnyAsync(u => u.Id == createReportModel.CategoryId))
                 {
                     throw new ArgumentException("Category not found");
                 }
@@ -133,7 +133,7 @@ namespace PublicPatch.Services
                     ReportImages = createReportModel.ReportImages
                 };
 
-                
+
 
                 dbContext.Reports.Add(report);
                 await dbContext.SaveChangesAsync();
@@ -194,7 +194,13 @@ namespace PublicPatch.Services
         {
             var scope = serviceScopeFactory.CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-            var reports = dbContext.Reports.Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius && r.Location.Latitude <= (double)location.Latitude + location.Radius && r.Location.Longitude >= (double)location.Longitude - location.Radius && r.Location.Longitude <= (double)location.Longitude + location.Radius);
+            var reports = dbContext.Reports
+                .Include(r => r.Location) // Include the Location entity
+                .Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius
+                            && r.Location.Latitude <= (double)location.Latitude + location.Radius
+                            && r.Location.Longitude >= (double)location.Longitude - location.Radius
+                            && r.Location.Longitude <= (double)location.Longitude + location.Radius)
+                .ToList();
 
             return mapper.Map<IEnumerable<GetReportModel>>(reports);
         }

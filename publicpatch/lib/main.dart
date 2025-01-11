@@ -8,10 +8,17 @@ import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/onboard.dart';
 import 'package:publicpatch/pages/settings.dart';
 import 'package:publicpatch/service/user_secure.dart';
+import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final GoogleMapsFlutterPlatform mapsImplementation =
+      GoogleMapsFlutterPlatform.instance;
+  if (mapsImplementation is GoogleMapsFlutterAndroid) {
+    mapsImplementation.useAndroidViewSurface = true;
+  }
   ByteData data =
       await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
   SecurityContext.defaultContext

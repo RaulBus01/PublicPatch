@@ -1,129 +1,94 @@
-// lib/services/category_service.dart
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/dio.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'package:publicpatch/models/Category.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'dart:io';
-import 'package:dio/io.dart';
 
 class CategoryService {
   static Database? _db;
-  late final Dio _dio;
-  final String baseUrl = 'https://10.0.2.2:5001'; // Add your API base URL
+  late final http.Client _client;
+  static String get baseUrl => 'https://192.168.1.215:5001';
 
   CategoryService() {
-    _dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 3),
-    ));
-
-    (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
-      HttpClient client = HttpClient();
-      client.badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
-      return client;
-    };
-  }
-
-  Future<Database> get database async {
-    _db ??= await _initDatabase();
-    return _db!;
-  }
-
-  Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'categories.db');
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: (Database db, int version) async {
-        await db.execute('''
-          CREATE TABLE categories(
-            id INTEGER PRIMARY KEY,
-            name TEXT,
-            description TEXT,
-            icon TEXT
-          )
-        ''');
-      },
-    );
+    HttpOverrides.global = _CustomHttpOverrides();
+    _client = http.Client();
   }
 
   Future<List<Category>> getCategories() async {
     try {
-      final connectivityResult = await Connectivity().checkConnectivity();
+      final response = await _client.get(
+        Uri.parse('$baseUrl/GetCategories'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
 
-      if (connectivityResult != ConnectivityResult.none) {
-        final response = await _dio.get('/GetCategories');
-        print(response.data);
-        if (response.statusCode == 200) {
-          final categories = (response.data as List)
-              .map((item) => Category.fromMap(item))
-              .toList();
-          await _saveCategories(categories);
-          return categories;
-        }
+      if (response.statusCode != 200) {
+        throw Exception('Failed to fetch categories: ${response.statusCode}');
       }
-      return await _getLocalCategories();
+
+      final data = jsonDecode(response.body);
+      final categories = List<Category>.from(
+        (data as List).map((category) => Category.fromMap(category)),
+      );
+
+      return categories;
     } catch (e) {
-      print('Error fetching categories: $e');
-      // Return default categories if both API and local storage fail
-      return [
-        Category(
-            id: 1,
-            name: 'Road Issue',
-            description: 'Report road issues',
-            icon: 'TrafficIcon'),
-        Category(
-            id: 2,
-            name: 'Street Light',
-            description: 'Report street light issues',
-            icon: 'LocalParkingIcon'),
-      ];
+      debugPrint('Error fetching categories from API: $e');
+      // Fallback to local database
+      return getLocalCategories();
     }
   }
 
-  Future<void> _saveCategories(List<Category> categories) async {
-    final db = await database;
-    final batch = db.batch();
+  Future<List<Category>> getLocalCategories() async {
+    final categories = <Category>[];
+    categories.add(Category(
+        id: 1,
+        name: 'Local-Traffic',
+        description: 'Contains traffic related issues',
+        icon: 'TrafficIcon'));
+    categories.add(Category(
+        id: 2,
+        name: 'Local-Parking',
+        description: 'Report parking issues',
+        icon: 'LocalParkingIcon'));
 
-    // Clear existing categories
-    batch.delete('categories');
-
-    // Insert new categories
-    for (var category in categories) {
-      batch.insert('categories', category.toMap());
-    }
-
-    await batch.commit();
+    return categories;
   }
 
-  Future<List<Category>> _getLocalCategories() async {
+  Future<Category> getCategory(int id) async {
     try {
-      final db = await database;
-      final maps = await db.query('categories');
+      final response = await _client.get(
+        Uri.parse('$baseUrl/categories/GetCategory/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
 
-      if (maps.isNotEmpty) {
-        return maps.map((map) => Category.fromMap(map)).toList();
+      if (response.statusCode != 200) {
+        throw Exception('Failed to fetch category: ${response.statusCode}');
       }
 
-      // Fallback to static categories if no cached data
-      return [
-        Category(
-            id: 1,
-            name: 'Road Issue',
-            description: 'Report road issues',
-            icon: 'TrafficIcon'),
-        Category(
-            id: 2,
-            name: 'Street Light',
-            description: 'Report street light issues',
-            icon: 'LocalParkingIcon'),
-      ];
+      return Category.fromMap(jsonDecode(response.body));
     } catch (e) {
-      print('Error getting local categories: $e');
-      return [];
+      debugPrint('Error fetching category: $e');
+      throw Exception('Network error: $e');
     }
+  }
+
+  void dispose() {
+    _client.close();
+  }
+}
+
+class _CustomHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (cert, host, port) => true;
   }
 }

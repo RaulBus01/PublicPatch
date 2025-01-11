@@ -2,11 +2,13 @@ class LocationData {
   final double latitude;
   final double longitude;
   final String address;
+  final int? radius;
 
   LocationData({
     required this.latitude,
     required this.longitude,
     required this.address,
+    this.radius,
   });
 
   factory LocationData.fromMap(Map<String, dynamic> map) {
