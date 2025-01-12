@@ -24,7 +24,7 @@ namespace PublicPatch.Services
 
         Task DeleteReport(int id);
 
-        IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location); 
+        IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location);
     }
     public class ReportService : IReportService
     {
@@ -52,7 +52,7 @@ namespace PublicPatch.Services
                 var scope = serviceScopeFactory.CreateScope();
                 using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
                 return mapper.Map<GetReportModel>(
-                    await dbContext.Reports.Include(r => r.Location).FirstOrDefaultAsync(r => r.Id == id));
+                    await dbContext.Reports.Include(r => r.Location).Include(r => r.Category).FirstOrDefaultAsync(r => r.Id == id));
 
             }
             catch (Exception e)
@@ -73,9 +73,9 @@ namespace PublicPatch.Services
                 {
                     throw new ArgumentException("User not found");
                 }
-                
+
                 var reports = await dbContext.Reports.Where(r => r.UserId == userId)
-                    .Include(r => r.Location).ToListAsync();
+                    .Include(r => r.Location).Include(r => r.Category).ToListAsync();
                 return mapper.Map<IEnumerable<GetReportModel>>(reports);
             }
             catch (Exception e)
@@ -91,7 +91,7 @@ namespace PublicPatch.Services
             {
                 var scope = serviceScopeFactory.CreateScope();
                 using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-                var reports = await dbContext.Reports.Include(r => r.Location).OrderByDescending(r => r.CreatedAt).ToListAsync();
+                var reports = await dbContext.Reports.Include(r => r.Location).Include(r => r.Category).OrderByDescending(r => r.CreatedAt).ToListAsync();
 
                 return mapper.Map<IEnumerable<GetReportModel>>(reports);
             }
@@ -113,7 +113,7 @@ namespace PublicPatch.Services
                 {
                     throw new ArgumentException("User not found");
                 }
-                if(!await dbContext.Categories.AnyAsync(u => u.Id == createReportModel.CategoryId))
+                if (!await dbContext.Categories.AnyAsync(u => u.Id == createReportModel.CategoryId))
                 {
                     throw new ArgumentException("Category not found");
                 }
@@ -133,7 +133,7 @@ namespace PublicPatch.Services
                     ReportImages = createReportModel.ReportImages
                 };
 
-                
+
 
                 dbContext.Reports.Add(report);
                 await dbContext.SaveChangesAsync();
@@ -194,7 +194,14 @@ namespace PublicPatch.Services
         {
             var scope = serviceScopeFactory.CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-            var reports = dbContext.Reports.Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius && r.Location.Latitude <= (double)location.Latitude + location.Radius && r.Location.Longitude >= (double)location.Longitude - location.Radius && r.Location.Longitude <= (double)location.Longitude + location.Radius);
+            var reports = dbContext.Reports
+                .Include(r => r.Location) // Include the Location entity
+                .Include(r => r.Category)
+                .Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius
+                            && r.Location.Latitude <= (double)location.Latitude + location.Radius
+                            && r.Location.Longitude >= (double)location.Longitude - location.Radius
+                            && r.Location.Longitude <= (double)location.Longitude + location.Radius)
+                .ToList();
 
             return mapper.Map<IEnumerable<GetReportModel>>(reports);
         }

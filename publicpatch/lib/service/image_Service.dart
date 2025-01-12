@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:flutter/material.dart';
 
 class ImageService {
   final String cloudName = 'dl88qd6uc';
@@ -20,8 +21,6 @@ class ImageService {
 
       // Upload images sequentially to avoid rate limiting
       for (var image in images) {
-        print('Uploading image: ${image.path}');
-
         // Add delay between uploads
         if (uploadedUrls.isNotEmpty) {
           await Future.delayed(Duration(seconds: 1));
@@ -34,16 +33,16 @@ class ImageService {
               tags: ['reports']),
         );
 
-        print('Upload successful: ${response.secureUrl}');
+        debugPrint('Uploaded image: ${response.secureUrl}');
         uploadedUrls.add(response.secureUrl);
       }
 
       return uploadedUrls;
     } on CloudinaryException catch (e) {
-      print('Cloudinary error details: ${e.message}');
+      debugPrint('Cloudinary upload error: ${e.message}');
       throw Exception('Cloudinary upload failed: ${e.message}');
     } catch (e) {
-      print('Upload error details: $e');
+      debugPrint('Error uploading images: $e');
       throw Exception('Failed to upload images');
     }
   }

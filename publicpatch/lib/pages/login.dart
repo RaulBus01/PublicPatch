@@ -6,7 +6,6 @@ import 'package:publicpatch/components/BackgroundImage.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
 import 'package:publicpatch/models/UserLogin.dart';
 import 'package:publicpatch/pages/home.dart';
-import 'package:publicpatch/pages/reports.dart';
 import 'package:publicpatch/pages/signup.dart';
 import 'package:publicpatch/service/user_Service.dart';
 import 'package:publicpatch/service/user_secure.dart';

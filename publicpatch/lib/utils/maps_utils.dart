@@ -38,7 +38,9 @@ class MapUtils {
         'Description: $description\n\n'
         'View on map: https://www.google.com/maps/search/?api=1&query=$latitude,$longitude',
         subject: 'Location shared from Public Patch');
-    Navigator.pop(context);
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
   }
 
   static Future<bool> openInMapApp(double latitude, double longitude) async {

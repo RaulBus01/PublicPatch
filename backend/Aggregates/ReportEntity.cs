@@ -11,7 +11,10 @@ namespace PublicPatch.Aggregates
         public int LocationId { get; set; }
         [ForeignKey("LocationId")]
         public LocationEntity Location { get; set; }
+    
         public int CategoryId { get; set; }
+        [ForeignKey("CategoryId")]
+        public CategoryEntity Category { get; set; }
         public string Description { get; set; }
         public int UserId { get; set; }
         public int StatusId { get; set; }

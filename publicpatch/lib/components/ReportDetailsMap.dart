@@ -3,6 +3,7 @@ import 'package:publicpatch/components/ImageCarousel.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:publicpatch/utils/getIcon.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
 
 class ReportDetailsMap extends StatefulWidget {
@@ -187,6 +188,22 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                     minVerticalPadding: 20,
                     title: Row(
                       children: [
+                        Icon(
+                          Icons.location_on,
+                          color: Color(0xFF768196),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          widget.report.title,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ListTile(
+                    minVerticalPadding: 20,
+                    title: Row(
+                      children: [
                         const Icon(
                           Icons.location_on,
                           color: Color(0xFF768196),
@@ -199,16 +216,19 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      address ??
-                                          'Latitude : ${widget.report.location.latitude}, Longitude : ${widget.report.location.longitude}',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 2,
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Text(
+                                          address ??
+                                              'Latitude : ${widget.report.location.latitude}, Longitude : ${widget.report.location.longitude}',
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                      ),
                                     ),
                                     IconButton(
-                                      padding: EdgeInsets.all(8),
+                                      padding: const EdgeInsets.all(8),
                                       style: ButtonStyle(
                                         backgroundColor:
                                             WidgetStateProperty.all(
@@ -238,25 +258,28 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                       ],
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => GalleryView(
-                              imageUrls: widget.report.ReportImages),
-                        ),
-                      ),
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        height: 200,
-                        child: ImageCarousel(
-                            imageUrls: widget.report.ReportImages),
-                      ),
-                    ),
-                  ),
+
+                  widget.report.ReportImages.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => GalleryView(
+                                imageUrls: widget.report.ReportImages,
+                              ),
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              height: 200,
+                              child: ImageCarousel(
+                                imageUrls: widget.report.ReportImages,
+                              ),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(), // Empty widget when no images
                   ListTile(
                     minVerticalPadding: 20,
                     title: Row(
