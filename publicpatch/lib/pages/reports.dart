@@ -4,10 +4,12 @@ import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/components/BottomPanel.dart';
 import 'package:publicpatch/models/LocationData.dart';
 import 'package:publicpatch/models/Report.dart';
+import 'package:publicpatch/pages/editreport.dart';
 import 'package:publicpatch/pages/reportsMap.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:publicpatch/service/report_Service.dart';
 import 'package:publicpatch/service/user_secure.dart';
+import 'package:publicpatch/utils/create_route.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
 import 'package:publicpatch/utils/time_utils.dart';
 
@@ -224,7 +226,13 @@ class ReportCard extends StatelessWidget {
                       title: const Text('Edit Report',
                           style: TextStyle(color: Colors.white)),
                       onTap: () {
-                        Navigator.pop(context);
+                        Navigator.pushReplacement(context, CreateRoute.createRoute(EditReportPage(
+                          reportId: id,
+                          title: title,
+                          description: description,
+                          imageUrls: imageUrls,
+                          location: location,
+                        )));
                         print('Edit Report');
                       },
                     ),

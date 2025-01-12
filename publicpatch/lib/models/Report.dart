@@ -1,3 +1,5 @@
+import "dart:io";
+
 import "package:publicpatch/models/LocationData.dart";
 
 class Report {
@@ -66,5 +68,34 @@ class Report {
       'reportImagesUrls': ReportImages,
       'status': status,
     };
+  }
+}
+
+class UpdateReportModel{
+  final int id;
+  final int userId;
+  final String title;
+  final LocationData location;
+  final String description;
+  final List<File> reportImages;
+
+   UpdateReportModel({
+    required this.id,
+    required this.userId,
+    required this.title,
+    required this.location,
+    required this.description,
+    required this.reportImages,
+  });
+
+   factory UpdateReportModel.fromJson(Map<String, dynamic> json) {
+    return UpdateReportModel(
+      id: json['id'],
+      userId: json['userId'],
+      title: json['title'],
+      location: json['location'],
+      description: json['description'],
+      reportImages: json['reportImages'],
+    );
   }
 }
