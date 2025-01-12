@@ -1,23 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:publicpatch/components/CustomDropDown.dart';
 import 'package:publicpatch/components/CustomFormInput.dart';
-
 import 'package:publicpatch/components/CustomTextArea.dart';
 import 'package:publicpatch/models/Category.dart';
 import 'package:publicpatch/models/CreateReport.dart';
 import 'package:publicpatch/models/LocationData.dart';
-import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/home.dart';
-import 'package:publicpatch/pages/report.dart';
-import 'package:publicpatch/pages/reports.dart';
 import 'package:publicpatch/service/category_Service.dart';
 import 'package:publicpatch/service/report_Service.dart';
-import 'package:publicpatch/service/user_Service.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/create_route.dart';
 import 'package:publicpatch/utils/getIcon.dart';
@@ -219,14 +213,21 @@ class _ReportFormState extends State<ReportFormPage> {
           gravity: ToastGravity.TOP);
       return false;
     }
-    if (_selectedLocation == null) {
+    if (_selectedLocation == null || _selectedLocation!.address.isEmpty) {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
           msg: 'Please select a location',
           gravity: ToastGravity.TOP);
       return false;
     }
-    //TODO: Add validation for category
+
+    if (_selectedCategory == null) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: 'Please select a category',
+          gravity: ToastGravity.TOP);
+      return false;
+    }
     return true;
   }
 
@@ -321,7 +322,7 @@ class _ReportFormState extends State<ReportFormPage> {
                           categoryId: _selectedCategory!.id,
                           imageUrls: _images,
                           userId: await UserSecureStorage.getUserId());
-                      print('Report data: ${report.toMap()}');
+
                       var responseData =
                           await ReportService().createReport(report);
                       if (responseData == null) {
@@ -332,8 +333,10 @@ class _ReportFormState extends State<ReportFormPage> {
                           msg: 'Report created successfully',
                           gravity: ToastGravity.TOP);
 
-                      Navigator.pushReplacement(
-                          context, CreateRoute.createRoute(HomePage()));
+                      if (mounted) {
+                        Navigator.pushReplacement(
+                            context, CreateRoute.createRoute(HomePage()));
+                      }
                     } catch (e) {
                       Fluttertoast.showToast(
                           backgroundColor: Colors.red,

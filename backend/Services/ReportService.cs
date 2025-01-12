@@ -52,7 +52,7 @@ namespace PublicPatch.Services
                 var scope = serviceScopeFactory.CreateScope();
                 using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
                 return mapper.Map<GetReportModel>(
-                    await dbContext.Reports.Include(r => r.Location).FirstOrDefaultAsync(r => r.Id == id));
+                    await dbContext.Reports.Include(r => r.Location).Include(r => r.Category).FirstOrDefaultAsync(r => r.Id == id));
 
             }
             catch (Exception e)
@@ -75,7 +75,7 @@ namespace PublicPatch.Services
                 }
 
                 var reports = await dbContext.Reports.Where(r => r.UserId == userId)
-                    .Include(r => r.Location).ToListAsync();
+                    .Include(r => r.Location).Include(r => r.Category).ToListAsync();
                 return mapper.Map<IEnumerable<GetReportModel>>(reports);
             }
             catch (Exception e)
@@ -91,7 +91,7 @@ namespace PublicPatch.Services
             {
                 var scope = serviceScopeFactory.CreateScope();
                 using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-                var reports = await dbContext.Reports.Include(r => r.Location).OrderByDescending(r => r.CreatedAt).ToListAsync();
+                var reports = await dbContext.Reports.Include(r => r.Location).Include(r => r.Category).OrderByDescending(r => r.CreatedAt).ToListAsync();
 
                 return mapper.Map<IEnumerable<GetReportModel>>(reports);
             }
@@ -196,6 +196,7 @@ namespace PublicPatch.Services
             using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
             var reports = dbContext.Reports
                 .Include(r => r.Location) // Include the Location entity
+                .Include(r => r.Category)
                 .Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius
                             && r.Location.Latitude <= (double)location.Latitude + location.Radius
                             && r.Location.Longitude >= (double)location.Longitude - location.Radius

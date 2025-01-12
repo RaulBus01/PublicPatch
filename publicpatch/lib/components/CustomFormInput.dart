@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart' as loc;
 import 'package:publicpatch/models/LocationData.dart';
 import 'package:publicpatch/utils/geolocationFunctions.dart';
 
@@ -28,6 +28,7 @@ class CustomFormInput extends StatefulWidget {
 
 class _CustomFormInputState extends State<CustomFormInput> {
   late bool _obscureText;
+  loc.Location location = loc.Location();
   @override
   void initState() {
     super.initState();
@@ -53,6 +54,15 @@ class _CustomFormInputState extends State<CustomFormInput> {
                   onPressed: () async {
                     try {
                       widget.controller.text = 'Getting location...';
+                      if (await Geolocator.isLocationServiceEnabled() ==
+                          false) {
+                        final status = await location.requestService();
+                        if (status == false) {
+                          widget.controller.text =
+                              'Location service is disabled';
+                          return;
+                        }
+                      }
                       Position position = await determinePosition();
                       String address = await determineAddress(position);
 

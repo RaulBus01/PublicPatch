@@ -14,7 +14,7 @@ class UserSecureStorage {
     final token = await getToken();
     if (token == null) return 0;
     final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-    print(decodedToken);
+
     return int.parse(decodedToken['sub']);
   }
 

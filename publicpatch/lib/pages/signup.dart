@@ -50,7 +50,9 @@ class _SignUpPageState extends State<SignUpPage> {
           Fluttertoast.showToast(
               msg: 'Account created successfully', gravity: ToastGravity.TOP);
 
-          Navigator.pushReplacement(context, _createRoute('home'));
+          if (mounted) {
+            Navigator.pushReplacement(context, _createRoute('home'));
+          }
         } else {
           Fluttertoast.showToast(
               backgroundColor: Colors.red,

@@ -3,11 +3,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:publicpatch/models/Category.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 
 class CategoryService {
-  static Database? _db;
   late final http.Client _client;
   static String get baseUrl => 'https://192.168.1.215:5001';
 

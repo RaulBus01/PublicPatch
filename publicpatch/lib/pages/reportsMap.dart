@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:publicpatch/models/LocationData.dart';
@@ -24,6 +24,8 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
   static const int _minFetchInterval = 5; // seconds
   static const double _minFetchDistance = 100; // meters
 
+  final loc.Location _locationService = loc.Location();
+
   final Map<MarkerId, Marker> _markerMap = {};
   final ReportService _reportService = ReportService();
 
@@ -39,13 +41,12 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
 
   double _currentZoom = 10.0;
 
+  Timer? _debounceTimer;
+  bool _isDisposed = false;
+
   double _getRadiusForZoom(double zoom) {
-    const double minZoom = 5.0;
-    const double maxZoom = 20.0;
     const double minRadius = 0.01;
     const double maxRadius = 20;
-
-    final normalizedZoom = (zoom - minZoom) / (maxZoom - minZoom);
 
     final radius = maxRadius * pow(0.55, (zoom - 1) / 2);
 
@@ -62,11 +63,14 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
 
   Future<void> _requestLocationPermission() async {
     final status = await Permission.location.request();
+    if (!mounted) return;
     if (status.isGranted) {
-      final location = await Geolocator.getCurrentPosition();
-      _mapController.animateCamera(CameraUpdate.newLatLng(
-          LatLng(location.latitude, location.longitude)));
+      await _locationService.requestService();
+
+      setState(() => _locationPermissionGranted = status.isGranted);
     }
+
+    if (!mounted) return;
     setState(() => _locationPermissionGranted = status.isGranted);
   }
 
@@ -106,7 +110,7 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
   }
 
   Future<void> _fetchAndUpdateMarkers(LatLng center, double radius) async {
-    if (!mounted) return;
+    if (!mounted || _isDisposed) return;
 
     setState(() => _isLoading = true);
     _lastRequestTime = DateTime.now();
@@ -122,7 +126,7 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
 
       debugPrint('Fetched ${reports.length} reports');
 
-      if (!mounted) return;
+      if (!mounted || _isDisposed) return;
 
       _updateMarkers(reports);
       _lastFetchedCenter = center;
@@ -174,17 +178,21 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
       body: Stack(
         children: [
           GoogleMap(
-            mapType: MapType.normal,
-            markers: Set<Marker>.from(_markerMap.values),
-            initialCameraPosition: CameraPosition(
-              target:
-                  LatLng(widget.latitude ?? 45.76, widget.longitude ?? 21.0),
-              zoom: _currentZoom,
-            ),
-            myLocationEnabled: _locationPermissionGranted,
-            onMapCreated: _onMapCreated,
-            onCameraIdle: _onCameraIdle,
-          ),
+              mapType: MapType.normal,
+              markers: Set<Marker>.from(_markerMap.values),
+              initialCameraPosition: CameraPosition(
+                target:
+                    LatLng(widget.latitude ?? 45.76, widget.longitude ?? 21.0),
+                zoom: _currentZoom,
+              ),
+              myLocationEnabled: _locationPermissionGranted,
+              onMapCreated: _onMapCreated,
+              onCameraIdle: _onCameraIdle,
+              minMaxZoomPreference:
+                  MinMaxZoomPreference(5, 20), // Set min/max zoom
+              zoomControlsEnabled: true,
+              zoomGesturesEnabled: true,
+              myLocationButtonEnabled: true),
           if (_isLoading)
             Center(
               child: CircularProgressIndicator(
@@ -210,25 +218,43 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
   }
 
   Future<void> _onCameraIdle() async {
-    final bounds = await _mapController.getVisibleRegion();
-    final center = LatLng(
-      double.parse(((bounds.northeast.latitude + bounds.southwest.latitude) / 2)
-          .toStringAsFixed(2)),
-      double.parse(
-          ((bounds.northeast.longitude + bounds.southwest.longitude) / 2)
-              .toStringAsFixed(2)),
-    );
-    _currentZoom = await _mapController.getZoomLevel();
-    debugPrint('Zoom: $_currentZoom');
-    final radius = _getRadiusForZoom(_currentZoom);
-    debugPrint('Center: $center, Radius: $radius');
-    if (_shouldFetchData(center)) {
-      _fetchAndUpdateMarkers(center, radius);
-    }
+    if (_isDisposed) return;
+
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      if (!mounted || _isDisposed) return;
+
+      try {
+        final bounds = await _mapController.getVisibleRegion();
+        final center = LatLng(
+          double.parse(
+              ((bounds.northeast.latitude + bounds.southwest.latitude) / 2)
+                  .toStringAsFixed(2)),
+          double.parse(
+              ((bounds.northeast.longitude + bounds.southwest.longitude) / 2)
+                  .toStringAsFixed(2)),
+        );
+
+        final zoom = await _mapController.getZoomLevel();
+        if (mounted && !_isDisposed) {
+          setState(() {
+            _currentZoom = zoom;
+          });
+        }
+
+        if (_shouldFetchData(center)) {
+          await _fetchAndUpdateMarkers(center, _getRadiusForZoom(_currentZoom));
+        }
+      } catch (e) {
+        debugPrint('Error updating camera: $e');
+      }
+    });
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
+    _debounceTimer?.cancel();
     _mapController.dispose();
     super.dispose();
   }

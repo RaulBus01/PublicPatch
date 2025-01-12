@@ -28,7 +28,6 @@ class _ReportPageState extends State<ReportPage> {
 
   Future<void> _loadReport() async {
     try {
-      print(widget.reportId);
       final data = await ReportService().getReport(widget.reportId);
       if (mounted) {
         setState(() {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:publicpatch/models/Category.dart';
 
 class CustomDropDown<T> extends StatefulWidget {
   final T initialValue;

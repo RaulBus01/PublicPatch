@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/onboard.dart';
-import 'package:publicpatch/pages/settings.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';

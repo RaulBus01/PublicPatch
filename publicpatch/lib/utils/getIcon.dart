@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 IconData getIconFromString(String iconName) {
-  print(iconName);
   // Material Icons mapping
   final Map<String, IconData> iconMap = {
     'TrafficIcon': Icons.traffic,
