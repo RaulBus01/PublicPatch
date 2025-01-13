@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:publicpatch/models/LocationData.dart';
 import 'package:publicpatch/utils/geolocationFunctions.dart';
+import 'package:uuid/uuid.dart';
 
 class CustomFormInput extends StatefulWidget {
   final String title;
@@ -11,7 +15,7 @@ class CustomFormInput extends StatefulWidget {
   final IconData? suffixIcon;
   final TextEditingController controller;
   final Function(LocationData)? onLocationSelected;
-
+  final String? content;
   const CustomFormInput({
     super.key,
     required this.title,
@@ -20,6 +24,7 @@ class CustomFormInput extends StatefulWidget {
     this.preFixIcon,
     this.suffixIcon,
     this.onLocationSelected,
+    this.content,
   });
 
   @override
@@ -28,9 +33,41 @@ class CustomFormInput extends StatefulWidget {
 
 class _CustomFormInputState extends State<CustomFormInput> {
   late bool _obscureText;
+  final _controller = TextEditingController();
+  var uuid = Uuid();
+  final String _sessionToken = Uuid().toString();
+  List<dynamic> _placeList = [];
+  @override
+  void getSuggestion(String input) async {
+    String kplacesApiKey = 'API_KEY';
+    String type = '(regions)';
+    String baseURL =
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+    String request =
+        '$baseURL?input=$input&key=$kplacesApiKey&sessiontoken=$_sessionToken';
+    var response = await http.get(Uri.parse(request));
+    if (response.statusCode == 200) {
+      setState(() {
+        _placeList = json.decode(response.body)['predictions'];
+      });
+    } else {
+      throw Exception('Failed to load predictions');
+    }
+  }
+
+  void _onChanged() {
+    getSuggestion(_controller.text);
+  }
+
   @override
   void initState() {
     super.initState();
+    _controller.addListener(() {
+      if (widget.content != null) {
+        _controller.text = widget.content!;
+      }
+      _onChanged();
+    });
     _obscureText = widget.obscureText;
   }
 

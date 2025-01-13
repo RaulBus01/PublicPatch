@@ -9,7 +9,7 @@ import 'package:publicpatch/service/image_Service.dart';
 
 class ReportService {
   late final Dio _dio;
-  final String baseUrl = 'https://10.0.2.2:5001';
+  final String baseUrl = 'https://192.168.1.105:5001';
 
   ReportService() {
     _dio = Dio(BaseOptions(
@@ -69,6 +69,58 @@ class ReportService {
     } catch (e) {
       print('Error: $e');
       throw Exception('Error creating report: $e');
+    }
+  }
+
+  Future<Report?> updateReport(UpdateReportModel report) async {
+    try {
+      // Upload new images if any
+      final imageUrls = await ImageService().uploadImages(report.reportImages);
+      debugPrint('Updated Image URLs: $imageUrls'); // Debug log
+
+      final data = {
+        'Id': report.id,
+        'UserId': report.userId,
+        'Title': report.title,
+        'location': {
+          'longitude': report.location.longitude,
+          'latitude': report.location.latitude,
+          'address': report.location.address
+        },
+        'Description': report.description,
+        'UpdatedAt': DateTime.now().toUtc().toIso8601String(),
+        'ReportImages': imageUrls,
+      };
+      var reportId = report.id;
+      final response = await _dio.put(
+        '/reports/UpdateReport/$reportId',
+        data: data,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return response.data != null ? Report.fromMap(response.data) : null;
+      }
+
+      if (response.statusCode == 404) {
+        throw Exception('Report not found');
+      }
+
+      throw Exception('Failed to update report: ${response.statusMessage}');
+    } on DioException catch (e) {
+      debugPrint('Dio Error: ${e.message}');
+      if (e.response?.statusCode == 404) {
+        throw Exception('Report not found');
+      }
+      throw Exception('Error updating report: ${e.message}');
+    } catch (e) {
+      debugPrint('Error: $e');
+      throw Exception('Error updating report: $e');
     }
   }
 

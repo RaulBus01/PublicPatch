@@ -15,7 +15,6 @@ namespace PublicPatch.Services
     {
         Task<GetReportModel> GetReportById(int id);
         Task<IEnumerable<GetReportModel>> GetReportsByUser(int userId);
-
         Task<IEnumerable<GetReportModel>> GetAllReports();
         Task CreateReport(CreateReportModel createReportModel);
         Task<IEnumerable<CategoryEntity>> GetCategories();
@@ -24,7 +23,8 @@ namespace PublicPatch.Services
 
         Task DeleteReport(int id);
 
-        IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location); 
+        IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location);
+        Task<ReportEntity> UpdateReport(UpdateReportModel newReport);
     }
     public class ReportService : IReportService
     {
@@ -197,6 +197,55 @@ namespace PublicPatch.Services
             var reports = dbContext.Reports.Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius && r.Location.Latitude <= (double)location.Latitude + location.Radius && r.Location.Longitude >= (double)location.Longitude - location.Radius && r.Location.Longitude <= (double)location.Longitude + location.Radius);
 
             return mapper.Map<IEnumerable<GetReportModel>>(reports);
+        }
+
+        public async Task<ReportEntity> UpdateReport(UpdateReportModel newReport)
+        {
+            var scope = serviceScopeFactory.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+            var report = await dbContext.Reports.FirstOrDefaultAsync(r => r.Id == newReport.Id);
+
+            if (report != null)
+            {
+                CompareAndUpdateReports(report, newReport);
+            }
+            else
+            {
+                throw new ArgumentException("Report not found");
+            }
+
+            await dbContext.SaveChangesAsync();
+            return report;
+        }
+
+        private void CompareAndUpdateReports(ReportEntity report, UpdateReportModel newReport)
+        {
+            if (report.Title != newReport.Title)
+            {
+                report.Title = newReport.Title;
+            }
+
+            if (report.Location != newReport.location)
+            {
+                report.Location = newReport.location;
+            }
+
+            if (report.Description != newReport.Description)
+            {
+                report.Description = newReport.Description;
+            }
+
+            if (report.Status != newReport.Status)
+            {
+                report.Status = newReport.Status;
+            }
+
+            if (report.ReportImages != newReport.ReportImages)
+            {
+                report.ReportImages = newReport.ReportImages;
+            }
+
+            report.UpdatedAt = DateTime.UtcNow;
         }
     }
 }
