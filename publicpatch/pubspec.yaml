@@ -62,6 +62,7 @@ dependencies:
   google_maps_cluster_manager: ^3.1.0
   google_maps_flutter_android: ^2.14.12
   location: ^7.0.1
+  uuid: ^4.5.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

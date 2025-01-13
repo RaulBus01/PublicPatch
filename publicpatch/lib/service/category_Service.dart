@@ -1,22 +1,16 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:http/http.dart' as http;
+
+
+
 import 'package:flutter/material.dart';
 import 'package:publicpatch/models/Category.dart';
+import 'package:publicpatch/utils/api_utils.dart';
 
 class CategoryService {
-  late final http.Client _client;
-  static String get baseUrl => 'https://192.168.1.215:5001';
-
-  CategoryService() {
-    HttpOverrides.global = _CustomHttpOverrides();
-    _client = http.Client();
-  }
-
   Future<List<Category>> getCategories() async {
     try {
-      final response = await _client.get(
-        Uri.parse('$baseUrl/GetCategories'),
+      final response = await ApiUtils.client.get(
+        Uri.parse('${ApiUtils.baseUrl}/GetCategories'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -58,8 +52,8 @@ class CategoryService {
 
   Future<Category> getCategory(int id) async {
     try {
-      final response = await _client.get(
-        Uri.parse('$baseUrl/categories/GetCategory/$id'),
+      final response = await ApiUtils.client.get(
+        Uri.parse('${ApiUtils.baseUrl}/categories/GetCategory/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -78,14 +72,6 @@ class CategoryService {
   }
 
   void dispose() {
-    _client.close();
-  }
-}
-
-class _CustomHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (cert, host, port) => true;
+    ApiUtils.client.close();
   }
 }

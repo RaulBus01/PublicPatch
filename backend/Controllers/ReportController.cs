@@ -23,7 +23,7 @@ namespace PublicPatch.Controllers
         }
 
         [HttpPost("CreateReport")]
-        public async Task<IActionResult>CreateReport([FromBody] CreateReportModel report)
+        public async Task<IActionResult> CreateReport([FromBody] CreateReportModel report)
         {
             await reportService.CreateReport(report);
 
@@ -66,15 +66,17 @@ namespace PublicPatch.Controllers
         }
 
         [HttpPut("UpdateReport/{reportId}")]
-        public async Task<IActionResult> UpdateReport(int userId)
+        public async Task<IActionResult> UpdateReport(UpdateReportModel updateReportModel)
         {
-            var reports = await reportService.GetReportsByUser(userId);
-            if (reports.Count() == 0)
+            try
             {
-                return NotFound();
+                var uptatedReport = await reportService.UpdateReport(updateReportModel);
+                return Ok(uptatedReport);
             }
-
-            return Ok(reports);
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
 
@@ -85,6 +87,8 @@ namespace PublicPatch.Controllers
             return Ok("Report deleted");
         }
 
+
+
             [HttpGet("GetReportsByZone")]
             public async Task<IActionResult> GetReportsByZone([FromQuery]GetReportsLocation location)
             {
@@ -94,9 +98,9 @@ namespace PublicPatch.Controllers
                     return NotFound();
                 }
 
-                return Ok(reports);
+            return Ok(reports);
 
-            }
-        
+        }
+
     }
 }

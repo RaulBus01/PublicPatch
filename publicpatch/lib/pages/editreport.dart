@@ -12,21 +12,34 @@ import 'package:publicpatch/components/CustomTextArea.dart';
 import 'package:publicpatch/models/Category.dart';
 import 'package:publicpatch/models/CreateReport.dart';
 import 'package:publicpatch/models/LocationData.dart';
+import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/home.dart';
+import 'package:publicpatch/pages/reports.dart';
 import 'package:publicpatch/service/category_Service.dart';
 import 'package:publicpatch/service/report_Service.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/create_route.dart';
 import 'package:publicpatch/utils/getIcon.dart';
 
-class ReportFormPage extends StatefulWidget {
-  const ReportFormPage({super.key});
+class EditReportPage extends StatefulWidget {
+  final int reportId;
+  final String title;
+  final String description;
+  final LocationData location;
+  final List<String> imageUrls;
+  const EditReportPage(
+      {super.key,
+      required this.reportId,
+      required this.title,
+      required this.description,
+      required this.location,
+      required this.imageUrls});
 
   @override
-  State<ReportFormPage> createState() => _ReportFormState();
+  State<EditReportPage> createState() => _EditReportFormState();
 }
 
-class _ReportFormState extends State<ReportFormPage> {
+class _EditReportFormState extends State<EditReportPage> {
   final ImagePicker _picker = ImagePicker();
   // final FilePicker _filePicker = await FilePicker.platform.pickFiles();
   final List<File> _images = [];
@@ -37,11 +50,139 @@ class _ReportFormState extends State<ReportFormPage> {
   bool _isDisposed = false;
   List<Category> _categories = [];
   Category? _selectedCategory;
+  int _initialImageCount = 0;
 
   @override
   void initState() {
     super.initState();
+    // Initialize controllers with existing data
+    _titleController.text = widget.title;
+    _descriptionController.text = widget.description;
+    _selectedLocation = widget.location;
+    _locationController.text = widget.location.address;
+    _initialImageCount = widget.imageUrls.length;
+
+    // Load categories and set up existing data
     _loadCategories();
+  }
+
+  bool _validateForm() {
+    // First check the form's built-in validators
+    if (!_formKey.currentState!.validate()) {
+      Fluttertoast.showToast(
+        msg: 'Please check all required fields',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    // Validate title
+    if (_titleController.text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Title cannot be empty',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    if (_titleController.text.trim().length < 3) {
+      Fluttertoast.showToast(
+        msg: 'Title must be at least 3 characters long',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    if (_titleController.text.trim().length > 100) {
+      Fluttertoast.showToast(
+        msg: 'Title cannot exceed 100 characters',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    // Validate location
+    if (_selectedLocation == null) {
+      Fluttertoast.showToast(
+        msg: 'Please select a location',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    // Validate description
+    if (_descriptionController.text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Description cannot be empty',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    if (_descriptionController.text.trim().length < 10) {
+      Fluttertoast.showToast(
+        msg: 'Description must be at least 10 characters long',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    if (_descriptionController.text.trim().length > 1000) {
+      Fluttertoast.showToast(
+        msg: 'Description cannot exceed 1000 characters',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    // Validate category
+    if (_selectedCategory == null) {
+      Fluttertoast.showToast(
+        msg: 'Please select a category',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    // Validate images (if you want to enforce minimum/maximum images)
+    if (_images.length > 6) {
+      Fluttertoast.showToast(
+        msg: 'Maximum 6 images allowed',
+        backgroundColor: Colors.red,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    // Check for any changes in the form
+    bool hasChanges = false;
+
+    if (_titleController.text != widget.title ||
+        _descriptionController.text != widget.description ||
+        _selectedLocation != widget.location ||
+        _images.isNotEmpty || _images.length != _initialImageCount) {
+      hasChanges = true;
+    }
+
+    if (!hasChanges) {
+      Fluttertoast.showToast(
+        msg: 'No changes detected',
+        backgroundColor: Colors.orange,
+        gravity: ToastGravity.TOP,
+      );
+      return false;
+    }
+
+    return true;
   }
 
   @override
@@ -67,6 +208,40 @@ class _ReportFormState extends State<ReportFormPage> {
   void _updateSelectedCategory(Category category) {
     if (!_isDisposed && mounted) {
       setState(() => _selectedCategory = category);
+    }
+  }
+
+  Future<void> _handleSubmit() async {
+    if (_validateForm()) {
+      try {
+        final updatedReport = UpdateReportModel(
+            title: _titleController.text,
+            location: _selectedLocation!,
+            description: _descriptionController.text,
+            reportImages: _images,
+            userId: await UserSecureStorage.getUserId(),
+            id: widget.reportId);
+
+        // Call update instead of create
+        var responseData = await reportService.updateReport(updatedReport);
+        if (responseData == null) {
+          throw Exception('Failed to update report');
+        }
+
+        if (mounted) {
+          Fluttertoast.showToast(
+              msg: 'Report updated successfully', gravity: ToastGravity.TOP);
+          Navigator.pushReplacement(
+              context, CreateRoute.createRoute(HomePage()));
+        }
+      } catch (e) {
+        if (mounted) {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg: e.toString(),
+              gravity: ToastGravity.TOP);
+        }
+      }
     }
   }
 
@@ -109,7 +284,7 @@ class _ReportFormState extends State<ReportFormPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Add Images',
+              'Report Images',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -132,26 +307,41 @@ class _ReportFormState extends State<ReportFormPage> {
                 ),
               ],
             ),
-            if (_images.isNotEmpty) ...[
+            if (widget.imageUrls.isNotEmpty || _images.isNotEmpty) ...[
               SizedBox(height: 16),
               SizedBox(
                 height: 100,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: _images.length,
+                  itemCount: widget.imageUrls.length + _images.length,
                   itemBuilder: (context, index) {
+                    // Determine if the image is from the original report or newly added
+                    bool isOriginal = index < widget.imageUrls.length;
+                    String? imageUrl =
+                        isOriginal ? widget.imageUrls[index] : null;
+                    File? imageFile = !isOriginal
+                        ? _images[index - widget.imageUrls.length]
+                        : null;
+
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: Stack(
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              _images[index],
-                              height: 100,
-                              width: 100,
-                              fit: BoxFit.cover,
-                            ),
+                            child: isOriginal
+                                ? Image.network(
+                                    imageUrl!,
+                                    height: 100,
+                                    width: 100,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.file(
+                                    imageFile!,
+                                    height: 100,
+                                    width: 100,
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                           Positioned(
                             right: 0,
@@ -159,7 +349,12 @@ class _ReportFormState extends State<ReportFormPage> {
                               icon: Icon(Icons.close, color: Colors.white),
                               onPressed: () {
                                 setState(() {
-                                  _images.removeAt(index);
+                                  if (isOriginal) {
+                                    widget.imageUrls.removeAt(index);
+                                  } else {
+                                    _images.removeAt(
+                                        index - widget.imageUrls.length);
+                                  }
                                 });
                               },
                             ),
@@ -206,27 +401,6 @@ class _ReportFormState extends State<ReportFormPage> {
     );
   }
 
-  bool _validateForm() {
-    if (!_formKey.currentState!.validate()) return false;
-
-    if (_titleController.text.isEmpty) {
-      Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: 'Title cannot be empty',
-          gravity: ToastGravity.TOP);
-      return false;
-    }
-    if (_selectedLocation == null) {
-      Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: 'Please select a location',
-          gravity: ToastGravity.TOP);
-      return false;
-    }
-    //TODO: Add validation for category
-    return true;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -263,7 +437,8 @@ class _ReportFormState extends State<ReportFormPage> {
               CustomFormInput(
                   controller: _titleController,
                   title: 'Title',
-                  preFixIcon: Icons.title),
+                  preFixIcon: Icons.title,
+                  content: this.widget.title),
               Padding(padding: EdgeInsets.only(top: 20)),
               CustomFormInputSuggestions(
                 controller: _locationController,
@@ -279,27 +454,6 @@ class _ReportFormState extends State<ReportFormPage> {
                 },
               ),
               Padding(padding: EdgeInsets.only(top: 20)),
-              CustomDropDown<Category>(
-                initialValue: _selectedCategory ??
-                    Category(id: 0, name: 'Select Category', description: ''),
-                items: _categories,
-                onChanged: _updateSelectedCategory,
-                itemBuilder: (category) => Row(
-                  children: [
-                    Icon(
-                      getIconFromString(category.icon ?? ''),
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      category.name,
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(padding: EdgeInsets.only(top: 20)),
               _buildImageCard(),
               Padding(padding: EdgeInsets.only(top: 15)),
               CustomTextArea(
@@ -310,33 +464,9 @@ class _ReportFormState extends State<ReportFormPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_validateForm()) {
-                    try {
-                      final report = CreateReport(
-                          title: _titleController.text,
-                          location: _selectedLocation!,
-                          description: _descriptionController.text,
-                          categoryId: _selectedCategory!.id,
-                          imageUrls: _images,
-                          userId: await UserSecureStorage.getUserId());
-                      print('Report data: ${report.toMap()}');
-                      var responseData =
-                          await ReportService().createReport(report);
-                      if (responseData == null) {
-                        throw Exception('Failed to create report');
-                      }
-
-                      Fluttertoast.showToast(
-                          msg: 'Report created successfully',
-                          gravity: ToastGravity.TOP);
-
-                      Navigator.pushReplacement(
-                          context, CreateRoute.createRoute(HomePage()));
-                    } catch (e) {
-                      Fluttertoast.showToast(
-                          backgroundColor: Colors.red,
-                          msg: e.toString(),
-                          gravity: ToastGravity.TOP);
-                    }
+                    await _handleSubmit();
+                    Navigator.pushReplacement(
+                        context, CreateRoute.createRoute(ReportsPage()));
                   }
                 },
                 style: ElevatedButton.styleFrom(
