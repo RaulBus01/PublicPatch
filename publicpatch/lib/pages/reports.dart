@@ -72,7 +72,13 @@ class _ReportsPageState extends State<ReportsPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ToggleButtons(
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              constraints: const BoxConstraints(
+                minWidth: 50,  // Adjust as needed
+                minHeight: 30,
+              ),
+              color: Color(0xFF768196), // Unselected text/icon color
+              selectedColor: Colors.white, // Selected text/icon color
+              fillColor: Colors.white.withOpacity(0.1),
               isSelected: [!showUserReports, showUserReports],
               onPressed: (index) {
                 setState(() {
@@ -84,13 +90,13 @@ class _ReportsPageState extends State<ReportsPage> {
               borderRadius: BorderRadius.circular(8),
               children: const [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  child: Text('All Reports'),
-                ),
+                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                    child: Text(
+                      'All Reports',
+                    )),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  child: Text('Your Reports'),
-                ),
+                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                    child: Text('Your Reports')),
               ],
             ),
           ],
@@ -226,13 +232,15 @@ class ReportCard extends StatelessWidget {
                       title: const Text('Edit Report',
                           style: TextStyle(color: Colors.white)),
                       onTap: () {
-                        Navigator.pushReplacement(context, CreateRoute.createRoute(EditReportPage(
-                          reportId: id,
-                          title: title,
-                          description: description,
-                          imageUrls: imageUrls,
-                          location: location,
-                        )));
+                        Navigator.pushReplacement(
+                            context,
+                            CreateRoute.createRoute(EditReportPage(
+                              reportId: id,
+                              title: title,
+                              description: description,
+                              imageUrls: imageUrls,
+                              location: location,
+                            )));
                         print('Edit Report');
                       },
                     ),

@@ -92,7 +92,7 @@ namespace PublicPatch.Controllers
             [HttpGet("GetReportsByZone")]
             public async Task<IActionResult> GetReportsByZone([FromQuery]GetReportsLocation location)
             {
-                var reports = reportService.GetReportsByZone(location);
+                var reports = await reportService.GetReportsByZone(location);
                 if (reports.Count() == 0)
                 {
                     return NotFound();

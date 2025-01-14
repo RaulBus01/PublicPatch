@@ -257,15 +257,6 @@ class _ReportFormState extends State<ReportFormPage> {
           child: ListView(
             children: [
               Padding(padding: EdgeInsets.only(top: 20)),
-              Text(
-                'Report Form',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 34,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Padding(padding: EdgeInsets.only(top: 40)),
               CustomFormInput(
                   controller: _titleController,
                   title: 'Title',

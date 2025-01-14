@@ -58,6 +58,7 @@ builder.Services.Configure<S3Settingscs>(builder.Configuration.GetSection("S3Set
 builder.Services.AddScoped<IConfigService, ConfigService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IFCMTokenService, FCMTokenService>();
 builder.Services.AddScoped(typeof(PPContext));
 
 builder.Services.AddSingleton<ITokenProvider, TokenProvider>();

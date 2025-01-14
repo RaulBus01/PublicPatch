@@ -10,7 +10,7 @@ import 'package:publicpatch/utils/time_utils.dart';
 class ReportPage extends StatefulWidget {
   final int reportId;
   const ReportPage({super.key, required this.reportId});
-
+  static const route = '/report';
   @override
   State<ReportPage> createState() => _ReportPageState();
 }
@@ -81,6 +81,7 @@ class _ReportPageState extends State<ReportPage> {
     }
 
     return Scaffold(
+      
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
         title: Text(reportData!.title),

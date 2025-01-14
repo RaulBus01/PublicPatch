@@ -23,7 +23,7 @@ namespace PublicPatch.Services
 
         Task DeleteReport(int id);
 
-        IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location);
+        Task<IEnumerable<GetReportModel>> GetReportsByZone(GetReportsLocation location);
         Task<ReportEntity> UpdateReport(UpdateReportModel newReport);
     }
     public class ReportService : IReportService
@@ -190,20 +190,31 @@ namespace PublicPatch.Services
             return category.Id;
         }
 
-        public IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location)
+        public async Task<IEnumerable<GetReportModel>> GetReportsByZone(GetReportsLocation location)
         {
-            var scope = serviceScopeFactory.CreateScope();
-            using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-            var reports = dbContext.Reports
-                .Include(r => r.Location) // Include the Location entity
-                .Include(r => r.Category)
-                .Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius
-                            && r.Location.Latitude <= (double)location.Latitude + location.Radius
-                            && r.Location.Longitude >= (double)location.Longitude - location.Radius
-                            && r.Location.Longitude <= (double)location.Longitude + location.Radius)
-                .ToList();
+            try
+            {
+                var scope = serviceScopeFactory.CreateScope();
+                using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+                var reports = await dbContext.Reports
+                    .Include(r => r.Location) // Include the Location entity
+                    .Include(r => r.Category)
+                    .Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius
+                                && r.Location.Latitude <= (double)location.Latitude + location.Radius
+                                && r.Location.Longitude >= (double)location.Longitude - location.Radius
+                                && r.Location.Longitude <= (double)location.Longitude + location.Radius)
+                    .ToListAsync();
 
-            return mapper.Map<IEnumerable<GetReportModel>>(reports);
+
+
+                return mapper.Map<IEnumerable<GetReportModel>>(reports);
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(GetReportsByZone)}: Error while getting the report", e);
+                throw;
+
+            }
         }
 
         public async Task<ReportEntity> UpdateReport(UpdateReportModel newReport)

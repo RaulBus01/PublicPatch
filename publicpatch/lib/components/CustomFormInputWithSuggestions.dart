@@ -65,8 +65,7 @@ class _CustomFormInputState extends State<CustomFormInputSuggestions> {
   }
 
   Future<void> getSuggestion(String input) async {
-    const String kplacesApiKey =
-        'API_KEY'; // Replace with your API key
+    const String kplacesApiKey = 'API_KEY'; // Replace with your API key
     const String baseURL =
         'https://maps.googleapis.com/maps/api/place/autocomplete/json';
     final String request =

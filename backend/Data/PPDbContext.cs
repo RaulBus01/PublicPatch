@@ -25,6 +25,8 @@ namespace PublicPatch.Data
         public DbSet<LocationEntity> Locations { get; set; }
         public DbSet<CategoryEntity> Categories { get; set; }
 
+        public DbSet<FCMTokenEntity> FCMTokenEntities { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<LocationEntity>()
