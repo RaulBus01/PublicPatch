@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:publicpatch/components/CustomDropDown.dart';
@@ -60,7 +60,7 @@ class _ReportFormState extends State<ReportFormPage> {
         });
       }
     } catch (e) {
-      print('Error loading categories: $e');
+      debugPrint('Error loading categories: $e');
     }
   }
 
@@ -223,7 +223,13 @@ class _ReportFormState extends State<ReportFormPage> {
           gravity: ToastGravity.TOP);
       return false;
     }
-    //TODO: Add validation for category
+    if (_selectedCategory == null) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: 'Please select a category',
+          gravity: ToastGravity.TOP);
+      return false;
+    }
     return true;
   }
 
@@ -318,7 +324,7 @@ class _ReportFormState extends State<ReportFormPage> {
                           categoryId: _selectedCategory!.id,
                           imageUrls: _images,
                           userId: await UserSecureStorage.getUserId());
-                      print('Report data: ${report.toMap()}');
+
                       var responseData =
                           await ReportService().createReport(report);
                       if (responseData == null) {
@@ -329,8 +335,10 @@ class _ReportFormState extends State<ReportFormPage> {
                           msg: 'Report created successfully',
                           gravity: ToastGravity.TOP);
 
-                      Navigator.pushReplacement(
-                          context, CreateRoute.createRoute(HomePage()));
+                      if (mounted) {
+                        Navigator.pushReplacement(
+                            context, CreateRoute.createRoute(HomePage()));
+                      }
                     } catch (e) {
                       Fluttertoast.showToast(
                           backgroundColor: Colors.red,

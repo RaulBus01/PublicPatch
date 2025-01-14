@@ -54,9 +54,7 @@ class _CustomDropDownState<T> extends State<CustomDropDown<T>> {
                     color: Color(0xFF768196),
                     size: 24,
                   ),
-                  onPressed: () {
-                    print('Info');
-                  },
+                  onPressed: () {},
                 ),
                 onTap: () {
                   setState(() => selectedValue = item);

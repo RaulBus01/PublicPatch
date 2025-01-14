@@ -52,7 +52,6 @@ class _CustomFormInputState extends State<CustomFormInputSuggestions> {
   @override
   void dispose() {
     widget.controller.removeListener(_onChanged); // Clean up listener
-    _hideOverlay();
     _focusNode.dispose();
     super.dispose();
   }
@@ -66,7 +65,8 @@ class _CustomFormInputState extends State<CustomFormInputSuggestions> {
   }
 
   Future<void> getSuggestion(String input) async {
-    const String kplacesApiKey = 'API_KEY'; // Replace with your API key
+    const String kplacesApiKey =
+        'API_KEY'; // Replace with your API key
     const String baseURL =
         'https://maps.googleapis.com/maps/api/place/autocomplete/json';
     final String request =
@@ -111,13 +111,9 @@ class _CustomFormInputState extends State<CustomFormInputSuggestions> {
   }
 
   void _hideOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-
-    if (mounted) {
-      setState(() {
-        _placeList = [];
-      });
+    if (_overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
     }
   }
 
@@ -145,7 +141,7 @@ class _CustomFormInputState extends State<CustomFormInputSuggestions> {
       }
 
       _hideOverlay();
-      // _focusNode.unfocus();
+      _focusNode.unfocus();
     } catch (e) {
       debugPrint('Error selecting place: $e');
       _hideOverlay();

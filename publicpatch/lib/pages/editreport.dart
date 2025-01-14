@@ -1,16 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:publicpatch/components/CustomDropDown.dart';
+
 import 'package:publicpatch/components/CustomFormInput.dart';
 import 'package:publicpatch/components/CustomFormInputWithSuggestions.dart';
 
 import 'package:publicpatch/components/CustomTextArea.dart';
 import 'package:publicpatch/models/Category.dart';
-import 'package:publicpatch/models/CreateReport.dart';
+
 import 'package:publicpatch/models/LocationData.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/home.dart';
@@ -19,7 +19,6 @@ import 'package:publicpatch/service/category_Service.dart';
 import 'package:publicpatch/service/report_Service.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/create_route.dart';
-import 'package:publicpatch/utils/getIcon.dart';
 
 class EditReportPage extends StatefulWidget {
   final int reportId;
@@ -169,7 +168,8 @@ class _EditReportFormState extends State<EditReportPage> {
     if (_titleController.text != widget.title ||
         _descriptionController.text != widget.description ||
         _selectedLocation != widget.location ||
-        _images.isNotEmpty || _images.length != _initialImageCount) {
+        _images.isNotEmpty ||
+        _images.length != _initialImageCount) {
       hasChanges = true;
     }
 
@@ -201,7 +201,7 @@ class _EditReportFormState extends State<EditReportPage> {
         });
       }
     } catch (e) {
-      print('Error loading categories: $e');
+      debugPrint("Error loading categories: $e");
     }
   }
 
@@ -438,7 +438,7 @@ class _EditReportFormState extends State<EditReportPage> {
                   controller: _titleController,
                   title: 'Title',
                   preFixIcon: Icons.title,
-                  content: this.widget.title),
+                  content: widget.title),
               Padding(padding: EdgeInsets.only(top: 20)),
               CustomFormInputSuggestions(
                 controller: _locationController,
@@ -465,8 +465,10 @@ class _EditReportFormState extends State<EditReportPage> {
                 onPressed: () async {
                   if (_validateForm()) {
                     await _handleSubmit();
-                    Navigator.pushReplacement(
-                        context, CreateRoute.createRoute(ReportsPage()));
+                    if (mounted) {
+                      Navigator.pushReplacement(
+                          context, CreateRoute.createRoute(ReportsPage()));
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiUtils {
-  static const String baseUrl = 'https://192.168.1.100:5001';
+  static const String baseUrl = 'https://192.168.1.108:5001';
   static http.Client? _client;
 
   static http.Client get client {

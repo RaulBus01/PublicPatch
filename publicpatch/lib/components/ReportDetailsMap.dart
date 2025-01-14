@@ -3,7 +3,6 @@ import 'package:publicpatch/components/ImageCarousel.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:publicpatch/utils/getIcon.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
 
 class ReportDetailsMap extends StatefulWidget {
@@ -31,35 +30,9 @@ String _formatDateTime(DateTime dateTime) {
 }
 
 class _ReportDetailsMapState extends State<ReportDetailsMap> {
-  String? address;
-  bool isLoadingAddress = true;
-
   @override
   void initState() {
     super.initState();
-    _getAddress();
-  }
-
-  Future<void> _getAddress() async {
-    try {
-      final placemarks = await placemarkFromCoordinates(
-        widget.report.location.latitude,
-        widget.report.location.longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        final place = placemarks[0];
-        setState(() {
-          address = '${place.street}, ${place.locality}, ${place.country}';
-          isLoadingAddress = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        address = 'Address not available';
-        isLoadingAddress = false;
-      });
-    }
   }
 
   @override
@@ -113,7 +86,7 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                             context,
                             widget.report.location.latitude,
                             widget.report.location.longitude,
-                            address ?? '',
+                            widget.report.location.address,
                             widget.report.title,
                             widget.report.description);
                       },
@@ -184,22 +157,7 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                           ),
                         ],
                       )),
-                  ListTile(
-                    minVerticalPadding: 20,
-                    title: Row(
-                      children: [
-                        Icon(
-                          Icons.location_on,
-                          color: Color(0xFF768196),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          widget.report.title,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
+
                   ListTile(
                     minVerticalPadding: 20,
                     title: Row(
@@ -210,50 +168,43 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: isLoadingAddress
-                              ? const CircularProgressIndicator()
-                              : Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Text(
-                                          address ??
-                                              'Latitude : ${widget.report.location.latitude}, Longitude : ${widget.report.location.longitude}',
-                                          style: const TextStyle(
-                                              color: Colors.white),
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      padding: const EdgeInsets.all(8),
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            WidgetStateProperty.all(
-                                          const Color.fromARGB(
-                                              79, 148, 151, 172),
-                                        ),
-                                      ),
-                                      constraints: const BoxConstraints(),
-                                      onPressed: () async {
-                                        final success =
-                                            await MapUtils.openInMapApp(
-                                                widget.report.location.latitude,
-                                                widget
-                                                    .report.location.longitude);
-                                        print(
-                                            'Open in map app success: $success');
-                                      },
-                                      icon: const Icon(
-                                        Icons.directions_outlined,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ],
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  scrollDirection: Axis.horizontal,
+                                  child: Text(
+                                    widget.report.location.address,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
                                 ),
+                              ),
+                              IconButton(
+                                padding: const EdgeInsets.all(8),
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStateProperty.all(
+                                    const Color.fromARGB(79, 148, 151, 172),
+                                  ),
+                                ),
+                                constraints: const BoxConstraints(),
+                                onPressed: () async {
+                                  final success = await MapUtils.openInMapApp(
+                                      widget.report.location.latitude,
+                                      widget.report.location.longitude);
+                                  debugPrint(
+                                      'Open in map app success: $success');
+                                },
+                                icon: const Icon(
+                                  Icons.directions_outlined,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

@@ -29,7 +29,7 @@ class ReportService {
           'CategoryId': report.categoryId,
           'Description': report.description,
           'UserId': report.userId,
-          'Status': report.status ?? 0,
+          'Status': report.status,
           'CreatedAt': DateTime.now().toUtc().toIso8601String(),
           'UpdatedAt': DateTime.now().toUtc().toIso8601String(),
           'Upvotes': 0,

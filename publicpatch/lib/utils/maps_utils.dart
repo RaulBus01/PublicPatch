@@ -55,7 +55,7 @@ class MapUtils {
       }
     } else {
       // Android uses geo: scheme
-      print("Platform.isAndroid: ${Platform.isAndroid}");
+      debugPrint('Opening map at $latitude, $longitude');
 
       geoUri = Uri.parse('geo:$latitude,$longitude?q=$latitude,$longitude');
     }
