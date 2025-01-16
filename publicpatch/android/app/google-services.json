@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1069740759879",
+    "project_id": "publichpatch-f4ace",
+    "storage_bucket": "publichpatch-f4ace.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1069740759879:android:53247f585551f079ef0a62",
+        "android_client_info": {
+          "package_name": "com.example.publicpatch"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAennFhutSuwq0NMfwHPAffF6AbcTvwPwk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -7,9 +7,11 @@ import 'package:publicpatch/components/CustomFormInput.dart';
 import 'package:publicpatch/models/UserLogin.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/signup.dart';
+import 'package:publicpatch/service/notification_ServiceStorage.dart';
 import 'package:publicpatch/service/user_Service.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/create_route.dart';
+import 'package:publicpatch/utils/firebase_api.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -49,6 +51,15 @@ class _LoginPageState extends State<LoginPage> {
 
         if (result.isNotEmpty) {
           await UserSecureStorage.saveToken(result);
+          // Initialize notifications for the new user
+          final userId = await UserSecureStorage.getUserId();
+          final notificationStorage =
+              NotificationStorage(userId: userId.toString());
+          await notificationStorage.init();
+
+          // Initialize Firebase messaging for the new user
+          final firebaseApi = FirebaseApi(userId: userId.toString());
+          await firebaseApi.initialize();
           Fluttertoast.showToast(
               backgroundColor: Colors.green,
               msg: 'Logged in successfully',

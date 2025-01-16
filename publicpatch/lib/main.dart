@@ -1,17 +1,36 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:publicpatch/models/NotificationModel.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/onboard.dart';
+import 'package:publicpatch/pages/report.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:publicpatch/utils/firebase_api.dart';
+
+final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final userId = await UserSecureStorage.getUserId();
+  if (userId != 0) {
+    await Firebase.initializeApp();
+    await FirebaseApi(userId: userId.toString()).initialize();
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(NotificationModelAdapter());
+    }
+  }
 
   final GoogleMapsFlutterPlatform mapsImplementation =
       GoogleMapsFlutterPlatform.instance;
@@ -34,6 +53,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         title: 'Public Patch',
         theme: ThemeData(

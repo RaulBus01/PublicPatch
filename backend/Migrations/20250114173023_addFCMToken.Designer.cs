@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PublicPatch.Data;
@@ -11,9 +12,11 @@ using PublicPatch.Data;
 namespace PublicPatch.Migrations
 {
     [DbContext(typeof(PPContext))]
-    partial class PPContextModelSnapshot : ModelSnapshot
+    [Migration("20250114173023_addFCMToken")]
+    partial class addFCMToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,10 +61,6 @@ namespace PublicPatch.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("DeviceType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("FCMKey")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -79,7 +78,14 @@ namespace PublicPatch.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("deviceType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("FCMKey")
+                        .IsUnique();
 
                     b.ToTable("FCMTokenEntities");
                 });

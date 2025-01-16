@@ -3,13 +3,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as loc;
-import 'package:permission_handler/permission_handler.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:publicpatch/models/LocationData.dart';
 
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/components/ReportDetailsMap.dart';
 import 'package:publicpatch/service/report_Service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ReportsMapPage extends StatefulWidget {
   final double? longitude, latitude;
@@ -161,7 +161,7 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
         position: LatLng(report.location.latitude, report.location.longitude),
         infoWindow: InfoWindow(
           title: report.title,
-          snippet: report.description,
+          snippet: "Tap to see details",
           onTap: () => _showReportDetails(report),
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),

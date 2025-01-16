@@ -1,6 +1,7 @@
 using System.Text;
 using Amazon;
 using Amazon.S3;
+using FirebaseAdmin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,6 +20,11 @@ builder.WebHost.ConfigureKestrel(options =>
     {
         listenOptions.UseHttps();
     });
+});
+
+FirebaseApp.Create(new AppOptions
+{
+    Credential = Google.Apis.Auth.OAuth2.GoogleCredential.FromFile("firebase-adminsdk.json")
 });
 
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
@@ -58,6 +64,7 @@ builder.Services.Configure<S3Settingscs>(builder.Configuration.GetSection("S3Set
 builder.Services.AddScoped<IConfigService, ConfigService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IFCMTokenService, FCMTokenService>();
 builder.Services.AddScoped(typeof(PPContext));
 
 builder.Services.AddSingleton<ITokenProvider, TokenProvider>();

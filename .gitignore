@@ -9,3 +9,8 @@
 .env
 /backend/bin/Debug/net8.0
 /backend/.vs/ProjectEvaluation
+.AndroidManifest.xml
+publicpatch/android/app/google-services.json
+backend/firebase-adminsdk.json
+
+.google-services.json

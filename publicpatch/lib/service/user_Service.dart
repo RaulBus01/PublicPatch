@@ -1,26 +1,14 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:publicpatch/models/User.dart';
 import 'package:publicpatch/models/UserLogin.dart';
+import 'package:publicpatch/utils/api_utils.dart';
 
 class UserService {
-  static String get baseUrl {
-    return 'https://192.168.1.215:5001';
-  }
-
-  late final http.Client _client;
-
-  UserService() {
-    HttpOverrides.global = _CustomHttpOverrides();
-    _client = http.Client();
-  }
-
   Future<String> createUser(User user) async {
     try {
-      final response = await _client.post(
-        Uri.parse('$baseUrl/users/Register'),
+      final response = await ApiUtils.client.post(
+        Uri.parse('${ApiUtils.baseUrl}/users/Register'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -45,8 +33,8 @@ class UserService {
 
   Future<String> login(UserLogin user) async {
     try {
-      final response = await _client.post(
-        Uri.parse('$baseUrl/users/Login'),
+      final response = await ApiUtils.client.post(
+        Uri.parse('${ApiUtils.baseUrl}/users/Login'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -68,14 +56,6 @@ class UserService {
   }
 
   void dispose() {
-    _client.close();
-  }
-}
-
-class _CustomHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (cert, host, port) => true;
+    ApiUtils.client.close();
   }
 }

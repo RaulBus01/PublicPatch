@@ -11,7 +11,7 @@ class CustomFormInput extends StatefulWidget {
   final IconData? suffixIcon;
   final TextEditingController controller;
   final Function(LocationData)? onLocationSelected;
-
+  final String? content;
   const CustomFormInput({
     super.key,
     required this.title,
@@ -20,6 +20,7 @@ class CustomFormInput extends StatefulWidget {
     this.preFixIcon,
     this.suffixIcon,
     this.onLocationSelected,
+    this.content,
   });
 
   @override
@@ -29,9 +30,16 @@ class CustomFormInput extends StatefulWidget {
 class _CustomFormInputState extends State<CustomFormInput> {
   late bool _obscureText;
   loc.Location location = loc.Location();
+  final _controller = TextEditingController();
+
   @override
   void initState() {
     super.initState();
+    _controller.addListener(() {
+      if (widget.content != null) {
+        _controller.text = widget.content!;
+      }
+    });
     _obscureText = widget.obscureText;
   }
 
@@ -75,7 +83,8 @@ class _CustomFormInputState extends State<CustomFormInput> {
                             address: address));
                       }
                     } catch (e) {
-                      print(e);
+                      debugPrint('Error getting location: $e');
+                      widget.controller.text = '';
                     }
                   },
                   icon: Icon(

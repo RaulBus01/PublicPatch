@@ -10,7 +10,7 @@ import 'package:publicpatch/utils/time_utils.dart';
 class ReportPage extends StatefulWidget {
   final int reportId;
   const ReportPage({super.key, required this.reportId});
-
+  static const route = '/report';
   @override
   State<ReportPage> createState() => _ReportPageState();
 }
@@ -83,7 +83,18 @@ class _ReportPageState extends State<ReportPage> {
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
-        title: Text(reportData!.title),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Report Details',
+              style: const TextStyle(color: Colors.white),
+            ),
+            IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close, color: Colors.white)),
+          ],
+        ),
         backgroundColor: const Color(0XFF0D0E15),
         titleTextStyle: const TextStyle(fontSize: 18, color: Colors.white),
       ),
@@ -99,23 +110,47 @@ class _ReportPageState extends State<ReportPage> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
+            reportData?.title != null
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Report Title",
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(reportData!.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                          )),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+
             // Images Section
-            GestureDetector(
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) =>
-                          GalleryView(imageUrls: reportData!.ReportImages))),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: 200,
-                  child: ImageCarousel(imageUrls: reportData!.ReportImages),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+            reportData?.ReportImages != null &&
+                    reportData!.ReportImages.isNotEmpty
+                ? GestureDetector(
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => GalleryView(
+                                imageUrls: reportData!.ReportImages))),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        height: 200,
+                        child:
+                            ImageCarousel(imageUrls: reportData!.ReportImages),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            const SizedBox(height: 40),
 
             // Location Section
             Row(
@@ -138,24 +173,30 @@ class _ReportPageState extends State<ReportPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 40),
 
             // Description Section
-            Text(
-              'Description',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              reportData!.description,
-              style: const TextStyle(color: Colors.white),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Description',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  reportData!.description,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ],
             ),
 
             // Status & Time Section
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -183,6 +224,8 @@ class _ReportPageState extends State<ReportPage> {
         return 'In Progress';
       case 2:
         return 'Resolved';
+      case 3:
+        return 'Rejected';
       default:
         return 'Unknown';
     }

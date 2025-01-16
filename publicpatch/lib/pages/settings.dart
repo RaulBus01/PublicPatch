@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/pages/login.dart';
+import 'package:publicpatch/service/notification_ServiceStorage.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/create_route.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  bool _pushNotificationsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -79,12 +88,7 @@ class SettingsPage extends StatelessWidget {
               ],
             ),
             settingOption('Change Password', Ionicons.caret_forward),
-            settingOption('Blocked Users', Ionicons.caret_forward),
             settingOption('Security', Ionicons.caret_forward),
-            Divider(
-              color: const Color.fromARGB(2500, 118, 129, 150),
-              thickness: 1,
-            ),
           ],
         ));
   }
@@ -106,8 +110,6 @@ class SettingsPage extends StatelessWidget {
             )
           ],
         ),
-        settingOption('Linked Accounts', Ionicons.caret_forward),
-        langSettingOption('Language', 'English'),
         toggleSettingOption('Push Notifications'),
         Divider(
           color: const Color.fromARGB(2500, 118, 129, 150),
@@ -132,13 +134,14 @@ class SettingsPage extends StatelessWidget {
                   fontFamily: 'Open Sans',
                   fontWeight: FontWeight.bold),
             )),
-            ToggleButtons(
-              isSelected: [true],
-              onPressed: (int index) {},
-              children: [
-                Icon(Ionicons.checkmark,
-                    color: const Color.fromARGB(255, 5, 255, 26))
-              ],
+            Switch(
+              value: _pushNotificationsEnabled,
+              onChanged: (value) {
+                setState(() {
+                  _pushNotificationsEnabled = value;
+                  togglePushNotifications(value);
+                });
+              },
             ),
             Padding(padding: EdgeInsets.only(right: 20)),
           ],
@@ -176,6 +179,13 @@ class LogOutButton extends StatelessWidget {
   const LogOutButton({
     super.key,
   });
+  Future<void> logout() async {
+    final userId = await UserSecureStorage.getUserId();
+    final notificationStorage = NotificationStorage(userId: userId.toString());
+    await notificationStorage.closeBox();
+
+    await UserSecureStorage.deleteToken();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +194,7 @@ class LogOutButton extends StatelessWidget {
       height: 40,
       child: ElevatedButton(
           onPressed: () {
-            UserSecureStorage.deleteToken();
+            logout();
             Navigator.pushReplacement(
                 context, CreateRoute.createRoute(const LoginPage()));
           },
@@ -209,5 +219,13 @@ class LogOutButton extends StatelessWidget {
             ),
           )),
     );
+  }
+}
+
+Future<void> togglePushNotifications(bool enable) async {
+  if (enable) {
+    await FirebaseMessaging.instance.subscribeToTopic('all');
+  } else {
+    await FirebaseMessaging.instance.unsubscribeFromTopic('all');
   }
 }

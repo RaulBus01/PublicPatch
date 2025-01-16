@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:publicpatch/components/ImageCarousel.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:publicpatch/utils/getIcon.dart';
+import 'package:publicpatch/service/report_Service.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
 
 class ReportDetailsMap extends StatefulWidget {
@@ -31,34 +32,23 @@ String _formatDateTime(DateTime dateTime) {
 }
 
 class _ReportDetailsMapState extends State<ReportDetailsMap> {
-  String? address;
-  bool isLoadingAddress = true;
-
   @override
   void initState() {
     super.initState();
-    _getAddress();
   }
 
-  Future<void> _getAddress() async {
-    try {
-      final placemarks = await placemarkFromCoordinates(
-        widget.report.location.latitude,
-        widget.report.location.longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        final place = placemarks[0];
-        setState(() {
-          address = '${place.street}, ${place.locality}, ${place.country}';
-          isLoadingAddress = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        address = 'Address not available';
-        isLoadingAddress = false;
-      });
+  String _getStatusText(int status) {
+    switch (status) {
+      case 0:
+        return 'Pending';
+      case 1:
+        return 'In Progress';
+      case 2:
+        return 'Resolved';
+      case 3:
+        return 'Rejected';
+      default:
+        return 'Unknown';
     }
   }
 
@@ -113,7 +103,7 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                             context,
                             widget.report.location.latitude,
                             widget.report.location.longitude,
-                            address ?? '',
+                            widget.report.location.address,
                             widget.report.title,
                             widget.report.description);
                       },
@@ -154,48 +144,36 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                 children: [
                   ListTile(
                       minVerticalPadding: 20,
-                      title: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              widget.report.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
+                      title: Row(children: [
+                        Expanded(
+                          child: Text(
+                            widget.report.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.access_time,
-                                color: Color(0xFF768196),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                _formatDateTime(widget.report.createdAt),
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ],
-                      )),
+                        ),
+                      ])),
                   ListTile(
                     minVerticalPadding: 20,
                     title: Row(
                       children: [
-                        Icon(
-                          Icons.location_on,
-                          color: Color(0xFF768196),
+                        const Text(
+                          'Posted since: ',
+                          style: TextStyle(
+                            color: Color(0xFF768196),
+                          ),
                         ),
-                        const SizedBox(width: 10),
-                        Text(
-                          widget.report.title,
-                          style: const TextStyle(color: Colors.white),
+                        Expanded(
+                          child: Text(
+                            _formatDateTime(widget.report.createdAt),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.calendar_today,
+                          color: Color(0xFF768196),
                         ),
                       ],
                     ),
@@ -210,50 +188,43 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: isLoadingAddress
-                              ? const CircularProgressIndicator()
-                              : Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Text(
-                                          address ??
-                                              'Latitude : ${widget.report.location.latitude}, Longitude : ${widget.report.location.longitude}',
-                                          style: const TextStyle(
-                                              color: Colors.white),
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      padding: const EdgeInsets.all(8),
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            WidgetStateProperty.all(
-                                          const Color.fromARGB(
-                                              79, 148, 151, 172),
-                                        ),
-                                      ),
-                                      constraints: const BoxConstraints(),
-                                      onPressed: () async {
-                                        final success =
-                                            await MapUtils.openInMapApp(
-                                                widget.report.location.latitude,
-                                                widget
-                                                    .report.location.longitude);
-                                        print(
-                                            'Open in map app success: $success');
-                                      },
-                                      icon: const Icon(
-                                        Icons.directions_outlined,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ],
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  scrollDirection: Axis.horizontal,
+                                  child: Text(
+                                    widget.report.location.address,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
                                 ),
+                              ),
+                              IconButton(
+                                padding: const EdgeInsets.all(8),
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStateProperty.all(
+                                    const Color.fromARGB(79, 148, 151, 172),
+                                  ),
+                                ),
+                                constraints: const BoxConstraints(),
+                                onPressed: () async {
+                                  final success = await MapUtils.openInMapApp(
+                                      widget.report.location.latitude,
+                                      widget.report.location.longitude);
+                                  debugPrint(
+                                      'Open in map app success: $success');
+                                },
+                                icon: const Icon(
+                                  Icons.directions_outlined,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -280,26 +251,147 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                           ),
                         )
                       : const SizedBox.shrink(), // Empty widget when no images
+
+                  widget.report.description.isNotEmpty
+                      ? ListTile(
+                          minVerticalPadding: 20,
+                          title: Row(
+                            children: [
+                              const Icon(
+                                Icons.description,
+                                color: Color(0xFF768196),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  widget.report.description,
+                                  style: const TextStyle(color: Colors.white),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                   ListTile(
                     minVerticalPadding: 20,
                     title: Row(
                       children: [
                         const Icon(
-                          Icons.description,
+                          Icons.check_circle_outline,
                           color: Color(0xFF768196),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            widget.report.description,
+                            _getStatusText(widget.report.status),
                             style: const TextStyle(color: Colors.white),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 3,
                           ),
                         ),
+                        if (widget.report.status == 0 ||
+                            widget.report.status == 1)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ElevatedButton(
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStateProperty.all(
+                                    const Color(0xFF2A2D3A),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  final int? newStatus = await showDialog<int>(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        backgroundColor:
+                                            const Color(0XFF1B1D29),
+                                        title: const Text('Update Status',
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (widget.report.status == 0) ...[
+                                              ListTile(
+                                                leading: const Icon(
+                                                    Icons.update,
+                                                    color: Colors.white54),
+                                                title: const Text('In Progress',
+                                                    style: TextStyle(
+                                                        color: Colors.white)),
+                                                onTap: () =>
+                                                    Navigator.pop(context, 1),
+                                              ),
+                                              Divider(color: Colors.white54),
+                                              ListTile(
+                                                leading: const Icon(
+                                                    Icons.update,
+                                                    color: Colors.white54),
+                                                title: const Text('Resolved',
+                                                    style: TextStyle(
+                                                        color: Colors.white)),
+                                                onTap: () =>
+                                                    Navigator.pop(context, 2),
+                                              ),
+                                            ] else if (widget.report.status ==
+                                                1) ...[
+                                              ListTile(
+                                                leading: const Icon(
+                                                    Icons.update,
+                                                    color: Colors.white54),
+                                                title: const Text('Resolved',
+                                                    style: TextStyle(
+                                                        color: Colors.white)),
+                                                onTap: () =>
+                                                    Navigator.pop(context, 2),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+
+                                  if (newStatus != null) {
+                                    try {
+                                      await ReportService().updateReportStatus(
+                                          widget.report.id, newStatus);
+
+                                      if (context.mounted) {
+                                        Fluttertoast.showToast(
+                                          msg:
+                                              'Report status updated successfully',
+                                          backgroundColor: Colors.green,
+                                          gravity: ToastGravity.TOP,
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        Fluttertoast.showToast(
+                                          msg: 'Error updating report status',
+                                          backgroundColor: Colors.red,
+                                          gravity: ToastGravity.TOP,
+                                        );
+                                      }
+                                    }
+                                  }
+                                },
+                                child: Row(
+                                  children: [
+                                    const Text('Update Status',
+                                        style: TextStyle(color: Colors.white)),
+                                    const Icon(Icons.update,
+                                        color: Colors.white),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
-                  ),
+                  )
                 ],
               ),
             ),

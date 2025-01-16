@@ -5,16 +5,20 @@ class CustomNotification extends StatefulWidget {
   final String subtitle;
   final IconData icon;
   final DateTime? time;
+  final String reportId;
   final Function()? onDismissed;
   final Function()? onArchive;
+  final Function(String reportId)? onTap;
 
   const CustomNotification({
     super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
+    required this.reportId,
     this.time,
     this.onDismissed,
+    this.onTap,
     this.onArchive,
   });
 
@@ -84,6 +88,7 @@ class _CustomNotificationState extends State<CustomNotification> {
           }
           return shouldDelete;
         }
+
         return false;
       },
       background: Container(
@@ -111,48 +116,57 @@ class _CustomNotificationState extends State<CustomNotification> {
           ],
         ),
       ),
-      child: Container(
-        decoration: const BoxDecoration(
-            color: Color(0xFF1B1D29),
-            borderRadius: BorderRadius.all(Radius.circular(16))),
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(widget.icon, color: Colors.white, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+      child: GestureDetector(
+        onTap: () {
+          if (widget.onTap != null) {
+            widget.onTap!(widget.reportId);
+          }
+        },
+        child: Container(
+          decoration: const BoxDecoration(
+              color: Color(0xFF1B1D29),
+              borderRadius: BorderRadius.all(Radius.circular(16))),
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(widget.icon, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF9DA4B3),
-                      fontSize: 14,
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.subtitle,
+                      style: const TextStyle(
+                        color: Color(0xFF9DA4B3),
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            if (widget.time != null)
-              Text(
-                '${widget.time!.hour}:${widget.time!.minute.toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
+                  ],
                 ),
               ),
-          ],
+              if (widget.time != null)
+                Text(
+                  '${widget.time!.hour}:${widget.time!.minute.toString().padLeft(2, '0')}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              const SizedBox(width: 8),
+            ],
+          ),
         ),
       ),
     );

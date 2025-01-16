@@ -2,6 +2,7 @@
 using Amazon.S3.Model.Internal.MarshallTransformations;
 using Amazon.S3.Transfer;
 using AutoMapper;
+using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PublicPatch.Aggregates;
@@ -15,16 +16,16 @@ namespace PublicPatch.Services
     {
         Task<GetReportModel> GetReportById(int id);
         Task<IEnumerable<GetReportModel>> GetReportsByUser(int userId);
-
         Task<IEnumerable<GetReportModel>> GetAllReports();
         Task CreateReport(CreateReportModel createReportModel);
         Task<IEnumerable<CategoryEntity>> GetCategories();
         Task<int> CreateCategory(CreateCategoryModel categoryModel);
 
-
+        Task<GetReportModel> updateReportStatus(int reportId, Status status);
         Task DeleteReport(int id);
 
-        IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location);
+        Task<IEnumerable<GetReportModel>> GetReportsByZone(GetReportsLocation location);
+        Task<ReportEntity> UpdateReport(UpdateReportModel newReport);
     }
     public class ReportService : IReportService
     {
@@ -190,20 +191,137 @@ namespace PublicPatch.Services
             return category.Id;
         }
 
-        public IEnumerable<GetReportModel> GetReportsByZone(GetReportsLocation location)
+        public async Task<IEnumerable<GetReportModel>> GetReportsByZone(GetReportsLocation location)
+        {
+            try
+            {
+                var scope = serviceScopeFactory.CreateScope();
+                using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+                var reports = await dbContext.Reports
+                    .Include(r => r.Location) // Include the Location entity
+                    .Include(r => r.Category)
+                    .Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius
+                                && r.Location.Latitude <= (double)location.Latitude + location.Radius
+                                && r.Location.Longitude >= (double)location.Longitude - location.Radius
+                                && r.Location.Longitude <= (double)location.Longitude + location.Radius)
+                    .ToListAsync();
+
+
+
+                return mapper.Map<IEnumerable<GetReportModel>>(reports);
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(GetReportsByZone)}: Error while getting the report", e);
+                throw;
+
+            }
+        }
+
+        public async Task<ReportEntity> UpdateReport(UpdateReportModel newReport)
         {
             var scope = serviceScopeFactory.CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-            var reports = dbContext.Reports
-                .Include(r => r.Location) // Include the Location entity
-                .Include(r => r.Category)
-                .Where(r => r.Location.Latitude >= (double)location.Latitude - location.Radius
-                            && r.Location.Latitude <= (double)location.Latitude + location.Radius
-                            && r.Location.Longitude >= (double)location.Longitude - location.Radius
-                            && r.Location.Longitude <= (double)location.Longitude + location.Radius)
-                .ToList();
+            var report = await dbContext.Reports.FirstOrDefaultAsync(r => r.Id == newReport.Id);
 
-            return mapper.Map<IEnumerable<GetReportModel>>(reports);
+            if (report != null)
+            {
+                CompareAndUpdateReports(report, newReport);
+            }
+            else
+            {
+                throw new ArgumentException("Report not found");
+            }
+
+            await dbContext.SaveChangesAsync();
+            return report;
+        }
+
+        private void CompareAndUpdateReports(ReportEntity report, UpdateReportModel newReport)
+        {
+            if (report.Title != newReport.Title)
+            {
+                report.Title = newReport.Title;
+            }
+
+            if (report.Location != newReport.location)
+            {
+                report.Location = newReport.location;
+            }
+
+            if (report.Description != newReport.Description)
+            {
+                report.Description = newReport.Description;
+            }
+
+            if (report.Status != newReport.Status)
+            {
+                report.Status = newReport.Status;
+            }
+
+            if (report.ReportImages != newReport.ReportImages)
+            {
+                report.ReportImages = newReport.ReportImages;
+            }
+
+            report.UpdatedAt = DateTime.UtcNow;
+        }
+
+        public async Task<GetReportModel> updateReportStatus(int reportId, Status status)
+        {
+            var scope = serviceScopeFactory.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+            var report = await dbContext.Reports.FirstOrDefaultAsync(r => r.Id == reportId);
+            
+            if(report == null)
+            {
+                throw new ArgumentException("Report not found");
+            }   
+            
+           
+            if (status == Status.Resolved || status == Status.Rejected)
+            {
+                report.ResolvedAt = DateTime.UtcNow;
+            }
+
+            if(report.Status == status)
+            {
+                throw new ArgumentException("Status is already set to " + status);
+            }
+            report.Status = status;
+            report.UpdatedAt = DateTime.UtcNow;
+
+            await dbContext.SaveChangesAsync();
+
+            var fcmToken = await dbContext.FCMTokenEntities.Where(e => e.UserId == report.UserId).Select(e => e.FCMKey).ToListAsync();
+            
+
+            var messageing = FirebaseMessaging.DefaultInstance;
+
+            foreach (var i in fcmToken)
+            {
+                var message = new Message()
+                {
+                    Notification = new Notification()
+                    {
+                        
+                        Title = "Report Status Update",
+                        Body = $"Your report status has been updated to {status}"
+                    },
+                    Data = new Dictionary<string, string>()
+                    {
+                        ["reportId"] = reportId.ToString(),
+                        ["status"] =  status.ToString()
+                    },
+                    Token = i
+                };
+                var result = await messageing.SendAsync(message);
+            }
+            
+           
+
+            return mapper.Map<GetReportModel>(report);
         }
     }
+        
 }
