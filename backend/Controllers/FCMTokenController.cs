@@ -25,16 +25,11 @@ namespace PublicPatch.Controllers
         [HttpPost("AddFCMToken")]
         public async Task<IActionResult> AddFCMToken([FromBody] SaveFCMTokenModel saveFCMTokenModel)
         {
-            await fcmTokenService.AddFCMToken(saveFCMTokenModel);
+            await fcmTokenService.AddOrUpdateFCMToken(saveFCMTokenModel);
             return Ok(saveFCMTokenModel);
         }
 
-        [HttpPost("UpdateFCMToken")]
-        public async Task<IActionResult> UpdateFCMToken([FromBody] SaveFCMTokenModel saveFCMTokenModel)
-        {
-            await fcmTokenService.UpdateFCMToken(saveFCMTokenModel);
-            return Ok(saveFCMTokenModel);
-        }
+       
 
         [HttpDelete("DeleteFCMToken")]
         public async Task<IActionResult> DeleteFCMToken([FromBody] int userId)

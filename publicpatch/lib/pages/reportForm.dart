@@ -35,6 +35,7 @@ class _ReportFormState extends State<ReportFormPage> {
   CategoryService categoryService = CategoryService();
 
   bool _isDisposed = false;
+  bool _isSending = false;
   List<Category> _categories = [];
   Category? _selectedCategory;
 
@@ -308,6 +309,8 @@ class _ReportFormState extends State<ReportFormPage> {
                 onPressed: () async {
                   if (_validateForm()) {
                     try {
+                      if (_isSending) return;
+                      _isSending = true;
                       final report = CreateReport(
                           title: _titleController.text,
                           location: _selectedLocation!,
@@ -321,7 +324,7 @@ class _ReportFormState extends State<ReportFormPage> {
                       if (responseData == null) {
                         throw Exception('Failed to create report');
                       }
-
+                      _isSending = false;
                       Fluttertoast.showToast(
                           msg: 'Report created successfully',
                           gravity: ToastGravity.TOP);
@@ -331,6 +334,7 @@ class _ReportFormState extends State<ReportFormPage> {
                             context, CreateRoute.createRoute(HomePage()));
                       }
                     } catch (e) {
+                      _isSending = false;
                       Fluttertoast.showToast(
                           backgroundColor: Colors.red,
                           msg: e.toString(),

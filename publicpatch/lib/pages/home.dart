@@ -95,10 +95,6 @@ class _HomePageState extends State<HomePage> {
             ),
             BottomNavigationBarItem(
               icon: Badge(
-                label: _unreadNotifications > 0
-                    ? Text('$_unreadNotifications')
-                    : null,
-                isLabelVisible: _unreadNotifications > 0,
                 child: const Icon(
                   Ionicons.notifications_outline,
                   size: 30,

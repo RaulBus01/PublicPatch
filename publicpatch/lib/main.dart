@@ -6,8 +6,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:publicpatch/models/NotificationModel.dart';
 import 'package:publicpatch/pages/home.dart';
 import 'package:publicpatch/pages/onboard.dart';
+import 'package:publicpatch/pages/report.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -18,8 +22,15 @@ final navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
-  await FirebaseApi().initialize();
+  final userId = await UserSecureStorage.getUserId();
+  if (userId != 0) {
+    await Firebase.initializeApp();
+    await FirebaseApi(userId: userId.toString()).initialize();
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(NotificationModelAdapter());
+    }
+  }
 
   final GoogleMapsFlutterPlatform mapsImplementation =
       GoogleMapsFlutterPlatform.instance;

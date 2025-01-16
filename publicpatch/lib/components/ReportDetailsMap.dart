@@ -231,26 +231,30 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                           ),
                         )
                       : const SizedBox.shrink(), // Empty widget when no images
-                  ListTile(
-                    minVerticalPadding: 20,
-                    title: Row(
-                      children: [
-                        const Icon(
-                          Icons.description,
-                          color: Color(0xFF768196),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            widget.report.description,
-                            style: const TextStyle(color: Colors.white),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 3,
+
+                  widget.report.description.isNotEmpty
+                      ? ListTile(
+                          minVerticalPadding: 20,
+                          title: Row(
+                            children: [
+                              const Icon(
+                                Icons.description,
+                                color: Color(0xFF768196),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  widget.report.description,
+                                  style: const TextStyle(color: Colors.white),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 3,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        )
+                      : const SizedBox
+                          .shrink(), // Empty widget when no description
                 ],
               ),
             ),

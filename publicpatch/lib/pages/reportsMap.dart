@@ -161,7 +161,7 @@ class _ReportsMapPageState extends State<ReportsMapPage> {
         position: LatLng(report.location.latitude, report.location.longitude),
         infoWindow: InfoWindow(
           title: report.title,
-          snippet: report.description,
+          snippet: "Tap to see details",
           onTap: () => _showReportDetails(report),
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),

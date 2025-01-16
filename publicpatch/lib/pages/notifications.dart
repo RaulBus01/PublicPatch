@@ -1,7 +1,12 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:flutter/material.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:publicpatch/components/CustomNotification.dart';
+import 'package:publicpatch/models/NotificationModel.dart';
+import 'package:publicpatch/pages/report.dart';
+import 'package:publicpatch/service/notification_ServiceStorage.dart';
+import 'package:publicpatch/service/user_secure.dart';
 
 class NotificationsPage extends StatefulWidget {
   final void Function() onMarkAllRead;
@@ -15,59 +20,88 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
-  Future _onDismissed() async {
-    //ask for confirmation
+  int userId = -1;
+  NotificationStorage _storage = NotificationStorage(userId: '');
+  List<NotificationModel> notifications = [];
+  StreamSubscription? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    userId = await UserSecureStorage.getUserId();
+    _storage = NotificationStorage(userId: userId.toString());
+    await _storage.init();
+    _loadNotifications();
+    _setupNotificationListener();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupNotificationListener() {
+    final box = Hive.box<NotificationModel>(_storage.boxName);
+    _subscription = box.watch().listen((event) {
+      // Reload notifications when the box changes
+      _loadNotifications();
+    });
+  }
+
+  void _loadNotifications() {
+    setState(() {
+      notifications = _storage.getAllNotifications();
+    });
+  }
+
+  Future<void> _onTap(String reportId) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReportPage(reportId: int.parse(reportId)),
+      ),
+    );
+  }
+
+  Future<void> _onDismissed(NotificationModel notification) async {
+    await _storage.deleteNotification(notification);
+    // No need to call _loadNotifications() here as the watch() listener will handle it
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          surfaceTintColor: Colors.transparent,
-          title: const Text('Notifications'),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.mark_chat_read),
-              color: Colors.white,
-              onPressed: widget.unreadCount > 0 ? widget.onMarkAllRead : null,
-              disabledColor: const Color(0xFF1B1D29),
-            ),
-          ],
-          backgroundColor: const Color(0XFF0D0E15),
-          titleTextStyle: const TextStyle(fontSize: 18, color: Colors.white),
-        ),
+      appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
+        title: const Text('Notifications'),
         backgroundColor: const Color(0XFF0D0E15),
-        body: Stack(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                color: Color.fromARGB(134, 54, 60, 73),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-            ),
-            ListView.separated(
-              padding: const EdgeInsets.only(top: 16),
-              itemBuilder: (BuildContext context, int index) {
+        titleTextStyle: const TextStyle(fontSize: 18, color: Colors.white),
+      ),
+      backgroundColor: const Color(0XFF0D0E15),
+      body: notifications.isEmpty
+          ? const Center(
+              child: Text('No notifications',
+                  style: TextStyle(color: Colors.white)))
+          : ListView.builder(
+              itemCount: notifications.length,
+              itemBuilder: (context, index) {
+                final notification = notifications[index];
                 return CustomNotification(
-                  title: 'Notification Title',
-                  subtitle: 'Notification Subtitle',
+                  title: notification.title,
+                  subtitle: notification.body,
                   icon: Icons.notifications,
-                  time: DateTime.now(),
-                  onDismissed: _onDismissed,
+                  time: notification.timestamp,
+                  reportId: notification.reportId,
+                  onTap: _onTap,
+                  onDismissed: () => _onDismissed(notification),
                 );
               },
-              separatorBuilder: (BuildContext context, int index) {
-                return const Divider(
-                  color: Color(0xFF1B1D29),
-                  thickness: 1,
-                );
-              },
-              itemCount: 10,
             ),
-          ],
-        ));
+    );
   }
 }

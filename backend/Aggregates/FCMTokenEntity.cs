@@ -6,7 +6,7 @@ using PublicPatch.Models;
 
 namespace PublicPatch.Aggregates
 {  
-    [Index(nameof(FCMKey), IsUnique = true)]
+   
     public class FCMTokenEntity
 
     {
@@ -18,7 +18,7 @@ namespace PublicPatch.Aggregates
         {
             this.UserId = userId;
             this.FCMKey = fcmKey;
-            this.deviceType = deviceType;
+            this.DeviceType = deviceType;
         }
 
 
@@ -32,7 +32,7 @@ namespace PublicPatch.Aggregates
         [MaxLength(255)]
         public string FCMKey { get; set; }
 
-        public String deviceType { get; set; }
+        public string DeviceType { get; set; }
 
         public bool IsActive { get; set; } = true;
 

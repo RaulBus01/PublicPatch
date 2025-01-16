@@ -5,6 +5,7 @@ import 'package:publicpatch/components/BottomPanel.dart';
 import 'package:publicpatch/models/LocationData.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/pages/editreport.dart';
+import 'package:publicpatch/pages/reportForm.dart';
 import 'package:publicpatch/pages/reportsMap.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:publicpatch/service/report_Service.dart';
@@ -73,7 +74,7 @@ class _ReportsPageState extends State<ReportsPage> {
           children: [
             ToggleButtons(
               constraints: const BoxConstraints(
-                minWidth: 50,  // Adjust as needed
+                minWidth: 50, // Adjust as needed
                 minHeight: 30,
               ),
               color: Color(0xFF768196), // Unselected text/icon color
@@ -106,6 +107,7 @@ class _ReportsPageState extends State<ReportsPage> {
       ),
       backgroundColor: const Color(0XFF0D0E15),
       body: Container(
+        alignment: Alignment.center,
         decoration: const BoxDecoration(
           color: Color.fromARGB(134, 54, 60, 73),
           borderRadius: BorderRadius.only(
@@ -116,6 +118,31 @@ class _ReportsPageState extends State<ReportsPage> {
         padding: const EdgeInsets.all(10.0),
         child: ListView(
           children: [
+            if (reports.isEmpty && !isLoading)
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.8,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'You have no reports',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      Padding(padding: const EdgeInsets.all(10)),
+                      IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                CreateRoute.createRoute(
+                                    const ReportFormPage()));
+                          },
+                          icon: Icon(Ionicons.add_circle_outline,
+                              size: 40, color: Colors.white))
+                    ],
+                  ),
+                ),
+              ),
             for (var report in reports)
               ReportCard(
                 id: report.id,
@@ -124,6 +151,7 @@ class _ReportsPageState extends State<ReportsPage> {
                 description: report.description,
                 imageUrls: report.ReportImages,
                 timeAgo: report.createdAt.toLocal(),
+                status: report.status,
                 onDelete: _handleDelete,
               ),
           ],
@@ -140,6 +168,7 @@ class ReportCard extends StatelessWidget {
   final String description;
   final List<String> imageUrls;
   final DateTime timeAgo;
+  final int status;
   final Function(int) onDelete;
 
   const ReportCard({
@@ -150,6 +179,7 @@ class ReportCard extends StatelessWidget {
     required this.imageUrls,
     required this.timeAgo,
     required this.onDelete,
+    required this.status,
     super.key,
   });
 
@@ -159,6 +189,21 @@ class ReportCard extends StatelessWidget {
         builder: (_) => GalleryView(imageUrls: imageUrls),
       ),
     );
+  }
+
+  String _getStatusText(int status) {
+    switch (status) {
+      case 0:
+        return 'Pending';
+      case 1:
+        return 'In Progress';
+      case 2:
+        return 'Resolved';
+      case 3:
+        return 'Rejected';
+      default:
+        return 'Unknown';
+    }
   }
 
   @override
@@ -345,6 +390,13 @@ class ReportCard extends StatelessWidget {
                   )
                 : const SizedBox.shrink(),
             const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SelectableText(
+                'Status: ${_getStatusText(status)}',
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+            ),
             Align(
               alignment: Alignment.centerRight,
               child: SelectableText(

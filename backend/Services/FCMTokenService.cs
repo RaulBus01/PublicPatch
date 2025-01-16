@@ -9,9 +9,9 @@ namespace PublicPatch.Services
     public interface IFCMTokenService
     {
         
-        Task AddFCMToken(SaveFCMTokenModel saveFCMTokenModel);
+        Task AddOrUpdateFCMToken(SaveFCMTokenModel saveFCMTokenModel);
 
-        Task UpdateFCMToken(SaveFCMTokenModel saveFCMTokenModel);
+       
 
         Task DeleteFCMToken(int userId);
 
@@ -38,50 +38,69 @@ namespace PublicPatch.Services
             this.serviceScopeFactory = serviceScopeFactory;
             this.mapper = mapper;
         }
-        public async Task AddFCMToken(SaveFCMTokenModel saveFCMTokenModel)
+        public async Task AddOrUpdateFCMToken(SaveFCMTokenModel saveFCMTokenModel)
         {
             try
             {
                 var scope = serviceScopeFactory.CreateScope();
                 using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
 
-                var existingToken = TokenExists(saveFCMTokenModel.Token).Result;
-                if (existingToken == true)
-                {
-                    throw new ArgumentException("Token already exists");
-                }
                 if (!await dbContext.Users.AnyAsync(e => e.Id == saveFCMTokenModel.UserId))
                 {
                     throw new ArgumentException("User not found");
                 }
-                if(saveFCMTokenModel.DeviceType != "Android" && saveFCMTokenModel.DeviceType != "iOS")
+                if (saveFCMTokenModel.DeviceType != "Android" && saveFCMTokenModel.DeviceType != "iOS")
                 {
                     throw new ArgumentException("Invalid device type");
                 }
 
-                var fcmToken = new FCMTokenEntity()
-                {
-                    UserId = saveFCMTokenModel.UserId,
-                    FCMKey = saveFCMTokenModel.Token,
-                    deviceType = saveFCMTokenModel.DeviceType
-                };
+                var existingToken = await dbContext.FCMTokenEntities
+                    .SingleOrDefaultAsync(e => e.UserId == saveFCMTokenModel.UserId && e.DeviceType == saveFCMTokenModel.DeviceType);
 
-                dbContext.FCMTokenEntities.Add(fcmToken);
+               
+
+                if (existingToken != null)
+                {
+                    if (existingToken.FCMKey != saveFCMTokenModel.Token)
+                    {
+                        existingToken.FCMKey = saveFCMTokenModel.Token;
+                        existingToken.LastUpdatedAt = DateTime.UtcNow;
+                        dbContext.FCMTokenEntities.Update(existingToken);
+                    }
+                }
+                else
+                {
+                    var fcmToken = new FCMTokenEntity()
+                    {
+                        UserId = saveFCMTokenModel.UserId,
+                        FCMKey = saveFCMTokenModel.Token,
+                        DeviceType = saveFCMTokenModel.DeviceType
+                    };
+
+                    dbContext.FCMTokenEntities.Add(fcmToken);
+                }
+
                 await dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error adding FCM token");
+                logger.LogError(ex, "Error adding or updating FCM token");
                 throw;
             }
         }
 
-        public async Task<bool> TokenExists(string token)
-        { 
+        public async Task<string> GetTokenForUser(int userId, string device)
+        {
             var scope = serviceScopeFactory.CreateScope();
             using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-            return await dbContext.FCMTokenEntities.AnyAsync(e => e.FCMKey == token);
+            var fcmToken = await dbContext.FCMTokenEntities.SingleOrDefaultAsync(e => e.UserId == userId && e.DeviceType == device);
+            return fcmToken?.FCMKey;
         }
+
+
+
+
+
 
         public async Task DeleteFCMToken(int userId)
         {
@@ -112,12 +131,13 @@ namespace PublicPatch.Services
             {
                 var scope = serviceScopeFactory.CreateScope();
                 using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-                var fcmToken = await dbContext.FCMTokenEntities.FirstOrDefaultAsync(e => e.UserId == userId && e.deviceType == device);
+                var fcmToken = await dbContext.FCMTokenEntities.FirstOrDefaultAsync(e => e.UserId == userId && e.DeviceType == device);
                 if (fcmToken == null)
                 {
                     throw new ArgumentException("FCM token not found");
                 }
-                fcmToken.LastUsedAt = DateTime.Now;
+                fcmToken.LastUsedAt = DateTime.UtcNow;
+                dbContext.FCMTokenEntities.Update(fcmToken);
                 return mapper.Map<GetFCMTokenModel>(fcmToken);
             }
             catch (Exception ex)
@@ -130,28 +150,7 @@ namespace PublicPatch.Services
 
 
 
-        public async Task UpdateFCMToken(SaveFCMTokenModel saveFCMTokenModel)
-        {
-            try
-            {
-                var scope = serviceScopeFactory.CreateScope();
-                using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-                var fcmToken = await dbContext.FCMTokenEntities.SingleOrDefaultAsync(e => e.UserId == saveFCMTokenModel.UserId);
-                if (fcmToken == null)
-                {
-                    throw new ArgumentException("FCM token not found");
-                }
-                fcmToken.FCMKey = saveFCMTokenModel.Token;
-                fcmToken.deviceType = saveFCMTokenModel.DeviceType;
-                fcmToken.LastUpdatedAt = DateTime.Now;
-                await dbContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error updating FCM token");
-                throw;
-            }
-        }
+       
 
         public async Task<IEnumerable<GetFCMTokenModel>> getFCMTokenModelByUserIdList(int userId)
         {
@@ -175,7 +174,7 @@ namespace PublicPatch.Services
             {
                 var scope = serviceScopeFactory.CreateScope();
                 using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
-                var fcmToken = await dbContext.FCMTokenEntities.Where(e => e.deviceType == device).ToListAsync();
+                var fcmToken = await dbContext.FCMTokenEntities.Where(e => e.DeviceType == device).ToListAsync();
                 return mapper.Map<IEnumerable<GetFCMTokenModel>>(fcmToken);
             }
             catch (Exception ex)

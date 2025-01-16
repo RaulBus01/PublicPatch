@@ -121,7 +121,7 @@ class ReportService {
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to fetch user reports: ${response.statusCode}');
+        return List<Report>.empty();
       }
 
       final data = jsonDecode(response.body);
@@ -145,7 +145,7 @@ class ReportService {
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to fetch reports: ${response.statusCode}');
+        return List<Report>.empty();
       }
 
       final data = jsonDecode(response.body);

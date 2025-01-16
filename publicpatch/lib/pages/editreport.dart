@@ -47,6 +47,7 @@ class _EditReportFormState extends State<EditReportPage> {
   CategoryService categoryService = CategoryService();
 
   bool _isDisposed = false;
+  bool _isSending = false;
   List<Category> _categories = [];
   Category? _selectedCategory;
   int _initialImageCount = 0;
@@ -118,15 +119,6 @@ class _EditReportFormState extends State<EditReportPage> {
     if (_descriptionController.text.trim().isEmpty) {
       Fluttertoast.showToast(
         msg: 'Description cannot be empty',
-        backgroundColor: Colors.red,
-        gravity: ToastGravity.TOP,
-      );
-      return false;
-    }
-
-    if (_descriptionController.text.trim().length < 10) {
-      Fluttertoast.showToast(
-        msg: 'Description must be at least 10 characters long',
         backgroundColor: Colors.red,
         gravity: ToastGravity.TOP,
       );
@@ -214,6 +206,7 @@ class _EditReportFormState extends State<EditReportPage> {
   Future<void> _handleSubmit() async {
     if (_validateForm()) {
       try {
+        _isSending = true;
         final updatedReport = UpdateReportModel(
             title: _titleController.text,
             location: _selectedLocation!,
@@ -229,6 +222,7 @@ class _EditReportFormState extends State<EditReportPage> {
         }
 
         if (mounted) {
+          _isSending = false;
           Fluttertoast.showToast(
               msg: 'Report updated successfully', gravity: ToastGravity.TOP);
           Navigator.pushReplacement(
@@ -236,6 +230,7 @@ class _EditReportFormState extends State<EditReportPage> {
         }
       } catch (e) {
         if (mounted) {
+          _isSending = false;
           Fluttertoast.showToast(
               backgroundColor: Colors.red,
               msg: e.toString(),
@@ -464,7 +459,9 @@ class _EditReportFormState extends State<EditReportPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_validateForm()) {
-                    await _handleSubmit();
+                    if (!_isSending) {
+                      await _handleSubmit();
+                    }
                     if (mounted) {
                       Navigator.pushReplacement(
                           context, CreateRoute.createRoute(ReportsPage()));

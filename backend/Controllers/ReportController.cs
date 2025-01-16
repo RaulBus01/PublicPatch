@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using PublicPatch.Aggregates;
 using PublicPatch.Models;
 using PublicPatch.Services;
 
@@ -89,17 +90,31 @@ namespace PublicPatch.Controllers
 
 
 
-            [HttpGet("GetReportsByZone")]
-            public async Task<IActionResult> GetReportsByZone([FromQuery]GetReportsLocation location)
+        [HttpGet("GetReportsByZone")]
+        public async Task<IActionResult> GetReportsByZone([FromQuery]GetReportsLocation location)
+        {
+            var reports = await reportService.GetReportsByZone(location);
+            if (reports.Count() == 0)
             {
-                var reports = await reportService.GetReportsByZone(location);
-                if (reports.Count() == 0)
-                {
-                    return NotFound();
-                }
+                return NotFound();
+            }
 
-            return Ok(reports);
+        return Ok(reports);
 
+        }
+
+        [HttpPut("updateStatus/{reportId}/{status}")]
+        public async Task<IActionResult> UpdateStatus(int reportId, Status status)
+        {
+            try
+            {
+                var updatedReport = await reportService.updateReportStatus(reportId, status);
+                return Ok(updatedReport);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
     }

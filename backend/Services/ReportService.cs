@@ -2,6 +2,7 @@
 using Amazon.S3.Model.Internal.MarshallTransformations;
 using Amazon.S3.Transfer;
 using AutoMapper;
+using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PublicPatch.Aggregates;
@@ -20,7 +21,7 @@ namespace PublicPatch.Services
         Task<IEnumerable<CategoryEntity>> GetCategories();
         Task<int> CreateCategory(CreateCategoryModel categoryModel);
 
-
+        Task<GetReportModel> updateReportStatus(int reportId, Status status);
         Task DeleteReport(int id);
 
         Task<IEnumerable<GetReportModel>> GetReportsByZone(GetReportsLocation location);
@@ -265,5 +266,62 @@ namespace PublicPatch.Services
 
             report.UpdatedAt = DateTime.UtcNow;
         }
+
+        public async Task<GetReportModel> updateReportStatus(int reportId, Status status)
+        {
+            var scope = serviceScopeFactory.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<PPContext>();
+            var report = await dbContext.Reports.FirstOrDefaultAsync(r => r.Id == reportId);
+            
+            if(report == null)
+            {
+                throw new ArgumentException("Report not found");
+            }   
+            
+           
+            if (status == Status.Resolved || status == Status.Rejected)
+            {
+                report.ResolvedAt = DateTime.UtcNow;
+            }
+
+            if(report.Status == status)
+            {
+                throw new ArgumentException("Status is already set to " + status);
+            }
+            report.Status = status;
+            report.UpdatedAt = DateTime.UtcNow;
+
+            await dbContext.SaveChangesAsync();
+
+            var fcmToken = await dbContext.FCMTokenEntities.Where(e => e.UserId == report.UserId).Select(e => e.FCMKey).ToListAsync();
+            
+
+            var messageing = FirebaseMessaging.DefaultInstance;
+
+            foreach (var i in fcmToken)
+            {
+                var message = new Message()
+                {
+                    Notification = new Notification()
+                    {
+                        
+                        Title = "Report Status Update",
+                        Body = $"Your report status has been updated to {status}"
+                    },
+                    Data = new Dictionary<string, string>()
+                    {
+                        ["reportId"] = reportId.ToString(),
+                        ["status"] =  status.ToString()
+                    },
+                    Token = i
+                };
+                var result = await messageing.SendAsync(message);
+            }
+            
+           
+
+            return mapper.Map<GetReportModel>(report);
+        }
     }
+        
 }
