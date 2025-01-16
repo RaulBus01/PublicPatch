@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:publicpatch/pages/login.dart';
+import 'package:publicpatch/service/notification_ServiceStorage.dart';
 import 'package:publicpatch/service/user_secure.dart';
 import 'package:publicpatch/utils/create_route.dart';
 
@@ -176,6 +177,13 @@ class LogOutButton extends StatelessWidget {
   const LogOutButton({
     super.key,
   });
+  Future<void> logout() async {
+    final userId = await UserSecureStorage.getUserId();
+    final notificationStorage = NotificationStorage(userId: userId.toString());
+    await notificationStorage.closeBox();
+
+    await UserSecureStorage.deleteToken();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +192,7 @@ class LogOutButton extends StatelessWidget {
       height: 40,
       child: ElevatedButton(
           onPressed: () {
-            UserSecureStorage.deleteToken();
+            logout();
             Navigator.pushReplacement(
                 context, CreateRoute.createRoute(const LoginPage()));
           },

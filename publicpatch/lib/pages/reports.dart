@@ -40,10 +40,11 @@ class _ReportsPageState extends State<ReportsPage> {
     _loadReports(showUserReports);
   }
 
+  var userId = 0;
   Future<void> _loadReports(showUserReports) async {
     try {
       final reportService = ReportService();
-      final userId = await UserSecureStorage.getUserId();
+      userId = await UserSecureStorage.getUserId();
       final fetchedReports = showUserReports
           ? await reportService.getUserReports(userId)
           : await reportService.getReports();
@@ -147,6 +148,8 @@ class _ReportsPageState extends State<ReportsPage> {
               ReportCard(
                 id: report.id,
                 title: report.title,
+                userId: report.userId,
+                loggedUserId: userId,
                 location: report.location,
                 description: report.description,
                 imageUrls: report.ReportImages,
@@ -164,6 +167,8 @@ class _ReportsPageState extends State<ReportsPage> {
 class ReportCard extends StatelessWidget {
   final int id;
   final String title;
+  final int userId;
+  final int loggedUserId;
   final LocationData location;
   final String description;
   final List<String> imageUrls;
@@ -175,6 +180,8 @@ class ReportCard extends StatelessWidget {
     required this.id,
     required this.title,
     required this.location,
+    required this.userId,
+    required this.loggedUserId,
     required this.description,
     required this.imageUrls,
     required this.timeAgo,
@@ -290,61 +297,144 @@ class ReportCard extends StatelessWidget {
                       },
                     ),
                     Divider(color: Colors.white54),
-                    ListTile(
-                      leading: const Icon(Icons.delete, color: Colors.white54),
-                      title: const Text('Delete Report',
-                          style: TextStyle(color: Colors.white)),
-                      onTap: () async {
-                        Navigator.pop(context);
-                        final bool? confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              backgroundColor: const Color(0XFF1B1D29),
-                              title: const Text('Confirm Deletion',
+                    if (status != 3 && status != 2)
+                      Column(
+                        children: [
+                          ListTile(
+                              leading: const Icon(Icons.update,
+                                  color: Colors.white54),
+                              title: const Text('Update Status',
                                   style: TextStyle(color: Colors.white)),
-                              content: const Text(
-                                  style: TextStyle(color: Colors.white),
-                                  'Are you sure you want to delete this report?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text('CANCEL'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('DELETE'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
+                              onTap: () async {
+                                Navigator.pop(context);
+                                final int? newStatus = await showDialog<int>(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      backgroundColor: const Color(0XFF1B1D29),
+                                      title: const Text('Update Status',
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (status == 0) ...[
+                                            ListTile(
+                                              title: const Text('In Progress',
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
+                                              onTap: () =>
+                                                  Navigator.pop(context, 1),
+                                            ),
+                                            Divider(color: Colors.white54),
+                                            ListTile(
+                                              title: const Text('Resolved',
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
+                                              onTap: () =>
+                                                  Navigator.pop(context, 2),
+                                            ),
+                                          ] else if (status == 1) ...[
+                                            ListTile(
+                                              title: const Text('Resolved',
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
+                                              onTap: () =>
+                                                  Navigator.pop(context, 2),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
 
-                        if (confirm == true) {
-                          try {
-                            await ReportService().deleteReport(id);
+                                if (newStatus != null) {
+                                  try {
+                                    await ReportService()
+                                        .updateReportStatus(id, newStatus);
 
-                            if (context.mounted) {
-                              onDelete(id);
-                              Fluttertoast.showToast(
-                                msg: 'Report deleted successfully',
-                                backgroundColor: Colors.green,
-                                gravity: ToastGravity.TOP,
+                                    if (context.mounted) {
+                                      Fluttertoast.showToast(
+                                        msg:
+                                            'Report status updated successfully',
+                                        backgroundColor: Colors.green,
+                                        gravity: ToastGravity.TOP,
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Fluttertoast.showToast(
+                                        msg: 'Error updating report status',
+                                        backgroundColor: Colors.red,
+                                        gravity: ToastGravity.TOP,
+                                      );
+                                    }
+                                  }
+                                }
+                              }),
+                          Divider(color: Colors.white54),
+                        ],
+                      ),
+                    userId == loggedUserId
+                        ? ListTile(
+                            leading:
+                                const Icon(Icons.delete, color: Colors.white54),
+                            title: const Text('Delete Report',
+                                style: TextStyle(color: Colors.white)),
+                            onTap: () async {
+                              Navigator.pop(context);
+                              final bool? confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    backgroundColor: const Color(0XFF1B1D29),
+                                    title: const Text('Confirm Deletion',
+                                        style: TextStyle(color: Colors.white)),
+                                    content: const Text(
+                                        style: TextStyle(color: Colors.white),
+                                        'Are you sure you want to delete this report?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text('CANCEL'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: const Text('DELETE'),
+                                      ),
+                                    ],
+                                  );
+                                },
                               );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              Fluttertoast.showToast(
-                                msg: 'Error deleting report',
-                                backgroundColor: Colors.red,
-                                gravity: ToastGravity.TOP,
-                              );
-                            }
-                          }
-                        }
-                      },
-                    ),
+
+                              if (confirm == true) {
+                                try {
+                                  await ReportService().deleteReport(id);
+
+                                  if (context.mounted) {
+                                    onDelete(id);
+                                    Fluttertoast.showToast(
+                                      msg: 'Report deleted successfully',
+                                      backgroundColor: Colors.green,
+                                      gravity: ToastGravity.TOP,
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    Fluttertoast.showToast(
+                                      msg: 'Error deleting report',
+                                      backgroundColor: Colors.red,
+                                      gravity: ToastGravity.TOP,
+                                    );
+                                  }
+                                }
+                              }
+                            },
+                          )
+                        : const SizedBox.shrink(),
                   ],
                 ),
               ],

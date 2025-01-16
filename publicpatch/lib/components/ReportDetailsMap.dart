@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:publicpatch/components/ImageCarousel.dart';
 import 'package:publicpatch/models/Report.dart';
 import 'package:publicpatch/components/GalleryView.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:publicpatch/service/report_Service.dart';
 import 'package:publicpatch/utils/maps_utils.dart';
 
 class ReportDetailsMap extends StatefulWidget {
@@ -33,6 +35,21 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
   @override
   void initState() {
     super.initState();
+  }
+
+  String _getStatusText(int status) {
+    switch (status) {
+      case 0:
+        return 'Pending';
+      case 1:
+        return 'In Progress';
+      case 2:
+        return 'Resolved';
+      case 3:
+        return 'Rejected';
+      default:
+        return 'Unknown';
+    }
   }
 
   @override
@@ -253,8 +270,125 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                             ],
                           ),
                         )
-                      : const SizedBox
-                          .shrink(), // Empty widget when no description
+                      : const SizedBox.shrink(),
+                  ListTile(
+                    minVerticalPadding: 20,
+                    title: Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle_outline,
+                          color: Color(0xFF768196),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _getStatusText(widget.report.status),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        if (widget.report.status == 0 ||
+                            widget.report.status == 1)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ElevatedButton(
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStateProperty.all(
+                                    const Color(0xFF2A2D3A),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  final int? newStatus = await showDialog<int>(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        backgroundColor:
+                                            const Color(0XFF1B1D29),
+                                        title: const Text('Update Status',
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (widget.report.status == 0) ...[
+                                              ListTile(
+                                                leading: const Icon(
+                                                    Icons.update,
+                                                    color: Colors.white54),
+                                                title: const Text('In Progress',
+                                                    style: TextStyle(
+                                                        color: Colors.white)),
+                                                onTap: () =>
+                                                    Navigator.pop(context, 1),
+                                              ),
+                                              Divider(color: Colors.white54),
+                                              ListTile(
+                                                leading: const Icon(
+                                                    Icons.update,
+                                                    color: Colors.white54),
+                                                title: const Text('Resolved',
+                                                    style: TextStyle(
+                                                        color: Colors.white)),
+                                                onTap: () =>
+                                                    Navigator.pop(context, 2),
+                                              ),
+                                            ] else if (widget.report.status ==
+                                                1) ...[
+                                              ListTile(
+                                                leading: const Icon(
+                                                    Icons.update,
+                                                    color: Colors.white54),
+                                                title: const Text('Resolved',
+                                                    style: TextStyle(
+                                                        color: Colors.white)),
+                                                onTap: () =>
+                                                    Navigator.pop(context, 2),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+
+                                  if (newStatus != null) {
+                                    try {
+                                      await ReportService().updateReportStatus(
+                                          widget.report.id, newStatus);
+
+                                      if (context.mounted) {
+                                        Fluttertoast.showToast(
+                                          msg:
+                                              'Report status updated successfully',
+                                          backgroundColor: Colors.green,
+                                          gravity: ToastGravity.TOP,
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        Fluttertoast.showToast(
+                                          msg: 'Error updating report status',
+                                          backgroundColor: Colors.red,
+                                          gravity: ToastGravity.TOP,
+                                        );
+                                      }
+                                    }
+                                  }
+                                },
+                                child: Row(
+                                  children: [
+                                    const Text('Update Status',
+                                        style: TextStyle(color: Colors.white)),
+                                    const Icon(Icons.update,
+                                        color: Colors.white),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  )
                 ],
               ),
             ),

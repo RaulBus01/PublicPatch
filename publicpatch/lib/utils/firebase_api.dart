@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hive/hive.dart';
 import 'package:publicpatch/main.dart';
 import 'package:publicpatch/models/GetTokenModel.dart';
 import 'package:publicpatch/models/NotificationModel.dart';
@@ -63,7 +64,9 @@ class FirebaseApi {
         reportId: message.data['reportId']?.toString() ?? '',
         timestamp: DateTime.now(),
       );
-
+      if (!Hive.isBoxOpen(_storage.boxName)) {
+        await Hive.openBox<NotificationModel>(_storage.boxName);
+      }
       await _storage.saveNotification(notification);
     }
     final data = message.data;
@@ -106,7 +109,9 @@ class FirebaseApi {
         reportId: message.data['reportId']?.toString() ?? '',
         timestamp: DateTime.now(),
       );
-
+      if (!Hive.isBoxOpen(_storage.boxName)) {
+        await Hive.openBox<NotificationModel>(_storage.boxName);
+      }
       // Save to Hive storage
       await _storage.saveNotification(notificationModel);
       _localNotifications.show(

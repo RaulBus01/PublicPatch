@@ -210,6 +210,25 @@ class ReportService {
     }
   }
 
+  Future<String> updateReportStatus(int reportId, int status) async {
+    try {
+      final response = await ApiUtils.client.put(
+        Uri.parse('${ApiUtils.baseUrl}/reports/updateStatus/$reportId/$status'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.body;
+      }
+      throw Exception('Failed to update report status: ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
   void dispose() {
     ApiUtils.client.close();
   }

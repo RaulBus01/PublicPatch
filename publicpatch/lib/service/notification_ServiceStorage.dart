@@ -5,9 +5,18 @@ class NotificationStorage {
   static const String _baseBoxName = 'notifications';
   final String userId;
   late final String boxName;
+  static NotificationStorage? _instance;
 
-  NotificationStorage({required this.userId}) {
+  NotificationStorage._({required this.userId}) {
     boxName = '${_baseBoxName}_$userId';
+  }
+
+  factory NotificationStorage({required String userId}) {
+    if (_instance?.userId != userId) {
+      _instance?.closeBox(); // Close previous user's box
+      _instance = NotificationStorage._(userId: userId);
+    }
+    return _instance!;
   }
 
   Future<void> init() async {
@@ -15,12 +24,20 @@ class NotificationStorage {
     if (!Hive.isAdapterRegistered(0)) {
       Hive.registerAdapter(NotificationModelAdapter());
     }
+
+    // Close any open box with the same name before opening
+    if (Hive.isBoxOpen(boxName)) {
+      await Hive.box<NotificationModel>(boxName).close();
+    }
+
     await Hive.openBox<NotificationModel>(boxName);
   }
 
   Future<void> closeBox() async {
-    final box = Hive.box<NotificationModel>(boxName);
-    await box.close();
+    if (Hive.isBoxOpen(boxName)) {
+      final box = Hive.box<NotificationModel>(boxName);
+      await box.close();
+    }
   }
 
   Future<void> saveNotification(NotificationModel notification) async {
