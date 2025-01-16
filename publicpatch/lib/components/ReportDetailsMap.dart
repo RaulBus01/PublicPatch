@@ -144,37 +144,40 @@ class _ReportDetailsMapState extends State<ReportDetailsMap> {
                 children: [
                   ListTile(
                       minVerticalPadding: 20,
-                      title: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              widget.report.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
+                      title: Row(children: [
+                        Expanded(
+                          child: Text(
+                            widget.report.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.access_time,
-                                color: Color(0xFF768196),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                _formatDateTime(widget.report.createdAt),
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ],
+                        ),
+                      ])),
+                  ListTile(
+                    minVerticalPadding: 20,
+                    title: Row(
+                      children: [
+                        const Text(
+                          'Posted since: ',
+                          style: TextStyle(
+                            color: Color(0xFF768196),
                           ),
-                        ],
-                      )),
-
+                        ),
+                        Expanded(
+                          child: Text(
+                            _formatDateTime(widget.report.createdAt),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.calendar_today,
+                          color: Color(0xFF768196),
+                        ),
+                      ],
+                    ),
+                  ),
                   ListTile(
                     minVerticalPadding: 20,
                     title: Row(
